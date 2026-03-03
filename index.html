@@ -9,6 +9,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
@@ -18,7 +19,6 @@
             --text-main: #1e293b;
             --border-color: #cbd5e1;
             
-            /* 🌟 ألوان الفورم الأصلية 🌟 */
             --school-color: #3b82f6; 
             --principal-color: #10b981; 
             --vice-color: #8b5cf6; 
@@ -34,7 +34,6 @@
             box-sizing: border-box;
         }
 
-        /* تنسيق الترويسة */
         .header-container {
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             background: var(--card-bg); padding: 20px; border-radius: 12px;
@@ -49,13 +48,9 @@
             border-radius: 50px; font-weight: 700; font-size: 1rem; border: 1px solid #bfdbfe; display: inline-block;
         }
 
-        /* الزراير الملونة */
         .dash-wrapper {
-            display: grid;
-            grid-template-columns: 1fr 1fr; 
-            gap: 15px; 
-            max-width: 500px; 
-            margin: 0 auto 30px auto;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; 
+            max-width: 500px; margin: 0 auto 30px auto;
         }
         
         .btn-dash {
@@ -69,7 +64,6 @@
         .btn-add { background: #1e3a8a; } 
         .btn-excel { background: #16a34a; } 
         .btn-pdf { background: #dc2626; } 
-        
         .btn-edit-user { background: #eab308; color: #fff; grid-column: span 2; font-size: 1.1rem; padding: 15px;}
 
         .admin-login-wrapper { text-align: center; margin-bottom: 20px; }
@@ -77,32 +71,31 @@
 
         #adminArea { display: none; }
 
-        /* 🌟 التقرير الرسمي 🌟 */
+        /* الإحصائيات والرسم البياني */
         .stats-container {
-            display: flex; justify-content: space-around; align-items: center;
-            max-width: 600px; margin: 0 auto 25px auto; text-align: center;
+            display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap;
+            max-width: 600px; margin: 0 auto 20px auto; text-align: center; gap: 15px;
         }
         .stat-card h3 { margin: 0 0 10px 0; font-size: 1.1rem; color: #9ca3af; font-weight: 600; }
         .stat-number { font-size: 2rem; font-weight: 700; color: #9ca3af; line-height: 1; }
 
-        /* 🔥 تعديل مربع البحث ليتناسب مع الموبايل 🔥 */
+        .chart-card {
+            background: #fff; border-radius: 12px; padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin: 0 auto 30px auto;
+            max-width: 400px; border: 1px solid var(--border-color); text-align: center;
+        }
+        .chart-card h3 { margin: 0 0 15px 0; color: var(--primary); font-size: 1.2rem; font-weight: 700; }
+        .chart-container { position: relative; height: 220px; width: 100%; }
+
         .search-container { text-align: center; margin-bottom: 25px; width: 100%; }
         .search-container input { 
-            width: 100%; 
-            max-width: 600px; 
-            padding: 12px 20px; 
-            border: 2px solid #1e3a8a; 
-            border-radius: 50px; 
-            font-family: inherit; 
-            font-size: 1.1rem; 
-            outline: none; 
-            text-align: right;
-            color: #1e293b;
-            box-sizing: border-box; /* السطر السحري اللي بيمنع المربع يخرج بره الشاشة */
+            width: 100%; max-width: 600px; padding: 12px 20px; 
+            border: 2px solid #1e3a8a; border-radius: 50px; 
+            font-family: inherit; font-size: 1.1rem; outline: none; text-align: right;
+            color: #1e293b; box-sizing: border-box; 
         }
         .search-container input::placeholder { color: #9ca3af; }
 
-        /* الجدول النظيف */
         .table-wrapper { background: #fff; border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto; width: 100%; }
         table { width: 100%; border-collapse: collapse; text-align: center; white-space: nowrap; font-size: 0.95rem;}
         th, td { padding: 10px 15px; border-bottom: 1px solid #f3f4f6; border-left: 1px solid #f3f4f6; }
@@ -113,7 +106,7 @@
         .btn-edit { background: transparent; color: #eab308; border: 1px solid #eab308; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold;}
         .btn-delete { background: transparent; color: #ef4444; border: 1px solid #ef4444; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold;}
 
-        /* النافذة المنبثقة والفورم */
+        /* النافذة المنبثقة للفورم */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.7); z-index: 1000; justify-content: center; align-items: center;
@@ -147,7 +140,7 @@
         .form-group input, .form-group select {
             width: 100%; padding: 10px 12px; border: 1px solid #94a3b8;
             border-radius: 6px; outline: none; font-family: 'Cairo', sans-serif; font-size: 0.95rem;
-            background-color: #fff; box-sizing: border-box; /* لحماية حقول الفورم من الخروج عن الشاشة */
+            background-color: #fff; box-sizing: border-box; 
         }
         .form-group input:focus, .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2); }
         .form-group input:invalid:focus, .form-group select:invalid:focus { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); }
@@ -156,13 +149,12 @@
         .btn-save-data { background: #1e3a8a; color: #fff; width: 100%; max-width: 250px; padding: 15px; font-size: 1.1rem; font-weight: bold; font-family: inherit; border: none; border-radius: 8px; cursor: pointer; }
         .btn-close-data { background: #64748b; color: #fff; width: 100%; max-width: 250px; padding: 15px; font-size: 1.1rem; font-weight: bold; font-family: inherit; border: none; border-radius: 8px; cursor: pointer; }
 
-        /* منطقة التوقيعات للطباعة */
+        /* التوقيعات للطباعة */
         .print-signatures { display: none; }
 
-        /* 🌟🌟 إعدادات الطباعة الرسمية للورق (PDF) 🌟🌟 */
         @media print {
             body { background: white; margin: 0; padding: 0; color: #000; }
-            .dash-wrapper, .admin-login-wrapper, .modal-overlay, .search-container, .actions-cell, th:last-child, td:last-child { display: none !important; }
+            .dash-wrapper, .admin-login-wrapper, .modal-overlay, .search-container, .chart-card, .actions-cell, th:last-child, td:last-child { display: none !important; }
             .header-container { box-shadow: none; border: none; border-bottom: 3px double #000; border-radius: 0; padding: 0 0 15px 0; margin-bottom: 20px; display: flex; flex-direction: row; justify-content: space-between; align-items: center; }
             .header-title h2 { color: #000; font-size: 22px; margin-bottom: 5px;}
             .header-title p { color: #000; font-size: 16px; margin: 0;}
@@ -274,6 +266,7 @@
     </div>
 
     <div id="adminArea">
+        
         <div class="stats-container">
             <div class="stat-card">
                 <h3>المدارس</h3><div class="stat-number" id="statSchools">0</div>
@@ -283,6 +276,13 @@
             </div>
             <div class="stat-card">
                 <h3>الوكلاء</h3><div class="stat-number" id="statVicePrincipals">0</div>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>📊 إحصائية اكتمال البيانات</h3>
+            <div class="chart-container">
+                <canvas id="completionChart"></canvas>
             </div>
         </div>
 
@@ -327,6 +327,12 @@
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         window.allSchoolsData = [];
+        let statsChart = null; 
+        
+        // 🌟 متغيرات لحفظ الإحصائيات للرسم البياني 🌟
+        let globalCompleteCount = 0;
+        let globalIncompleteCount = 0;
+
         const modal = document.getElementById('formModal');
         const searchInput = document.getElementById('searchInput');
         
@@ -347,6 +353,7 @@
         
         document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.remove('active'));
 
+        // 🔥 الدخول السريع (0 ثانية تحميل) 🔥
         document.getElementById('loginAdminBtn').addEventListener('click', async () => {
             const { value: password } = await Swal.fire({
                 title: 'دخول المسئول', input: 'password', inputPlaceholder: 'كلمة المرور...',
@@ -356,9 +363,14 @@
             if (password === '7777') {
                 document.getElementById('adminArea').style.display = 'block';
                 document.getElementById('loginAdminBtn').style.display = 'none';
-                await fetchAndDisplayData();
+                
+                // تحديث الرسم البياني فوراً لأن البيانات موجودة مسبقاً
+                updateChart(globalCompleteCount, globalIncompleteCount);
+                
+                // جلب في الخلفية للتأكد من عدم وجود بيانات جديدة
+                fetchAndDisplayData();
             } else if (password) {
-                Swal.fire({icon: 'error', title: 'خطأ', text: 'كلمة المرور خاطئة.', confirmButtonText: 'حسناً', confirmButtonColor: '#ef4444'});
+                Swal.fire({icon: 'error', title: 'مرفوض', text: 'كلمة المرور خاطئة.', confirmButtonText: 'حسناً', confirmButtonColor: '#ef4444'});
             }
         });
 
@@ -384,6 +396,24 @@
         }
         searchInput.addEventListener('input', applySearchFilter);
 
+        function updateChart(completeCount, incompleteCount) {
+            const ctx = document.getElementById('completionChart').getContext('2d');
+            if (statsChart) { statsChart.destroy(); }
+
+            statsChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['مكتملة البيانات', 'ناقصة البيانات'],
+                    datasets: [{
+                        data: [completeCount, incompleteCount],
+                        backgroundColor: ['#10b981', '#ef4444'], 
+                        borderWidth: 2, borderColor: '#ffffff', hoverOffset: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 14 } } } } }
+            });
+        }
+
         async function fetchAndDisplayData() {
             const tbody = document.querySelector('#dataTable tbody');
             const { data, error } = await supabase.from('schools_management').select('*').order('id', { ascending: true });
@@ -395,13 +425,23 @@
             document.getElementById('statPrincipals').innerText = data.filter(r => r.principal_name && r.principal_name.trim() !== '').length || 0;
             document.getElementById('statVicePrincipals').innerText = data.filter(r => r.vice_principal_name && r.vice_principal_name.trim() !== '').length || 0;
 
+            globalCompleteCount = 0;
+            globalIncompleteCount = 0;
+
             tbody.innerHTML = ''; 
             if(data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; padding:20px;">لا توجد سجلات حالياً.</td></tr>';
+                if(document.getElementById('adminArea').style.display === 'block') updateChart(0, 0);
                 return;
             }
 
             data.forEach((row, index) => {
+                if (row.school_name?.trim() && row.principal_name?.trim() && row.principal_phone?.trim() && row.vice_principal_name?.trim() && row.vice_principal_phone?.trim()) {
+                    globalCompleteCount++;
+                } else {
+                    globalIncompleteCount++;
+                }
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${index + 1}</td>
@@ -417,6 +457,12 @@
                 `;
                 tbody.appendChild(tr);
             });
+            
+            // تحديث الرسم البياني فقط لو قسم المسئول مفتوح (عشان ميحصلش خطأ)
+            if (document.getElementById('adminArea').style.display === 'block') {
+                updateChart(globalCompleteCount, globalIncompleteCount);
+            }
+            
             applySearchFilter();
         }
 
@@ -444,7 +490,7 @@
         };
 
         window.deleteRecord = async function(id) {
-            const confirmDelete = await Swal.fire({ title: 'تأكيد الحذف', icon: 'warning', showCancelButton: true, confirmButtonText: 'حذف نهائي', cancelButtonText: 'إلغاء', confirmButtonColor: '#ef4444' });
+            const confirmDelete = await Swal.fire({ title: 'تأكيد الحذف', icon: 'warning', showCancelButton: true, confirmButtonText: 'حذف', cancelButtonText: 'إلغاء', confirmButtonColor: '#ef4444' });
             if (confirmDelete.isConfirmed) {
                 await supabase.from('schools_management').delete().eq('id', id);
                 await fetchAndDisplayData();
@@ -464,12 +510,12 @@
                 return Swal.fire({icon: 'error', title: 'خطأ', text: 'رقم الهاتف يجب أن يكون 11 رقماً بالضبط.', confirmButtonText: 'حسناً', confirmButtonColor: '#ef4444'});
             }
             if (pName.split(/\s+/).length < 4 || vName.split(/\s+/).length < 4) {
-                return Swal.fire({icon: 'error', title: 'خطأ', text: 'الاسم يجب أن يكون رباعياً (4 مقاطع).', confirmButtonText: 'حسناً', confirmButtonColor: '#ef4444'});
+                return Swal.fire({icon: 'error', title: 'خطأ', text: 'الاسم يجب أن يكون رباعياً.', confirmButtonText: 'حسناً', confirmButtonColor: '#ef4444'});
             }
 
             const confirmResult = await Swal.fire({ 
-                title: 'تأكيد الحفظ', text: 'هل أنت متأكد من صحة البيانات؟', icon: 'question', 
-                showCancelButton: true, confirmButtonText: 'نعم، احفظ', cancelButtonText: 'مراجعة', confirmButtonColor: '#1e3a8a' 
+                title: 'تأكيد الحفظ', text: 'هل أنت متأكد من البيانات؟', icon: 'question', 
+                showCancelButton: true, confirmButtonText: 'احفظ', cancelButtonText: 'مراجعة', confirmButtonColor: '#1e3a8a' 
             });
 
             if (confirmResult.isConfirmed) {
@@ -497,7 +543,7 @@
                 submitBtn.disabled = false;
 
                 if (dbError) {
-                    Swal.fire({ icon: 'error', title: 'حدث خطأ بالاتصال', text: 'لم يتم الحفظ، برجاء المحاولة مرة أخرى.', confirmButtonText: 'حسناً' });
+                    Swal.fire({ icon: 'error', title: 'خطأ بالاتصال', text: 'لم يتم الحفظ، يرجى المحاولة.', confirmButtonText: 'حسناً' });
                 } else {
                     Swal.fire({ icon: 'success', title: 'تم الحفظ بنجاح', timer: 1500, showConfirmButton: false });
                     document.getElementById('schoolForm').reset();
@@ -516,7 +562,7 @@
         
         document.getElementById('exportPdfBtn').addEventListener('click', () => window.print());
 
-        // جلب مبدئي
+        // 🌟 الجلب بيحصل في الخلفية أول ما تفتح الموقع 🌟
         fetchAndDisplayData();
     </script>
 </body>
