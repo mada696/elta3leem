@@ -30,7 +30,7 @@
             transition: 0.3s; display: flex; justify-content: center; min-height: 100vh;
         }
         .container {
-            width: 100%; max-width: 900px; background: var(--bg-card); backdrop-filter: blur(15px);
+            width: 100%; max-width: 1050px; background: var(--bg-card); backdrop-filter: blur(15px);
             border: 1px solid var(--border-color); border-radius: 20px;
             padding: 2.5rem; box-shadow: 0 10px 40px rgba(0,0,0,0.4); position: relative;
         }
@@ -74,7 +74,7 @@
         .inputs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .date-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 
-        /* ================== الجداول والرسوم ================== */
+        /* ================== الرسوم البيانية والجداول ================== */
         .charts-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 2rem; }
         .chart-box { background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 15px; padding: 15px; height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .chart-title { text-align: center; font-size: 1.1rem; color: var(--primary); margin-bottom: 10px; font-weight: bold; }
@@ -86,23 +86,51 @@
         th { background: rgba(0,0,0,0.3); color: var(--primary); white-space: nowrap; font-weight: bold;}
         tr:hover { background: rgba(255,255,255,0.02); }
         
-        .export-btns { display: flex; gap: 10px; margin-bottom: 1.5rem; justify-content: flex-end;}
-        .btn-excel, .btn-pdf { color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; font-family: 'Cairo'; font-weight: bold; font-size: 1rem; transition: 0.3s;}
+        .export-btns { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 10px;}
+        .export-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-excel, .btn-pdf, .btn-danger-outline, .btn-info-outline { color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; font-family: 'Cairo'; font-weight: bold; font-size: 1rem; transition: 0.3s;}
         .btn-excel { background: #16a34a; } .btn-excel:hover { background: #15803d; }
         .btn-pdf { background: #ef4444; } .btn-pdf:hover { background: #dc2626; }
+        .btn-danger-outline { background: transparent; border: 1px solid #ef4444; color: #ef4444; } .btn-danger-outline:hover { background: #ef4444; color: white; }
+        .btn-info-outline { background: var(--info); color: white; } .btn-info-outline:hover { background: #2563eb; }
+
+        /* ================== نظام المربعات و أزرار الأيام المنسدلة ================== */
+        .squares-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .school-square {
+            background: var(--input-bg); border: 2px solid var(--border-color); border-radius: 15px; padding: 15px;
+            min-height: 250px; max-height: 450px; display: flex; flex-direction: column; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .school-square:hover { border-color: var(--primary); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .sq-header { text-align: center; border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 10px; margin-bottom: 15px; }
+        .sq-icon { font-size: 2.5rem; margin-bottom: 5px; }
+        .sq-title { font-size: 1.2rem; color: var(--primary); font-weight: bold; }
+        .sq-days-list { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px; }
+        .sq-days-list::-webkit-scrollbar { width: 5px; }
+        .sq-days-list::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 5px; }
+        
+        .sq-acc-btn {
+            width: 100%; text-align: right; background: rgba(255,255,255,0.05); color: var(--text-main);
+            padding: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; font-family: 'Cairo';
+            font-weight: bold; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; transition: 0.2s;
+        }
+        .sq-acc-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--primary); }
+        .sq-acc-btn.active { background: var(--primary); color: #000; border-color: var(--primary); }
+        .sq-acc-content {
+            display: none; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-top: 5px;
+            font-size: 0.95rem; border: 1px solid rgba(255,255,255,0.05); border-right: 3px solid var(--primary);
+        }
+        .sq-acc-content.active { display: block; animation: fadeInDown 0.3s ease; }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* ================== النافذة المنبثقة ================== */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s;
         }
         .modal-overlay.show { opacity: 1; visibility: visible; }
         .modal-content {
-            background: var(--bg-card); border: 1px solid var(--border-color);
-            border-radius: 20px; padding: 2.5rem; text-align: center; width: 90%; max-width: 450px;
-            transform: scale(0.9); transition: 0.3s; box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 2.5rem; text-align: center;
+            width: 90%; max-width: 450px; transform: scale(0.9); transition: 0.3s; box-shadow: 0 15px 50px rgba(0,0,0,0.5);
         }
         .modal-overlay.show .modal-content { transform: scale(1); }
         .modal-icon { font-size: 3.5rem; margin-bottom: 1rem; }
@@ -116,17 +144,14 @@
         .btn-modal-cancel { background: transparent; color: var(--text-muted); border: 1px solid var(--text-muted); display: none; }
 
         /* ================== التقرير الرسمي للطباعة ================== */
-        #official-print-report { display: none; }
+        #official-print-report, #hidden-export-table { display: none; }
         @media print {
             body * { visibility: hidden; }
             body { background: white; margin: 0; padding: 0; }
             .container { display: none !important; }
 
             #official-print-report, #official-print-report * { visibility: visible; }
-            #official-print-report { 
-                display: block; position: absolute; left: 0; top: 0; width: 100%; 
-                direction: rtl; padding: 20px; font-family: 'Cairo', sans-serif; color: #000;
-            }
+            #official-print-report { display: block; position: absolute; left: 0; top: 0; width: 100%; direction: rtl; padding: 20px; font-family: 'Cairo', sans-serif; color: #000; }
             .print-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px double #000; padding-bottom: 15px; margin-bottom: 30px; }
             .print-header h4 { margin: 5px 0; font-size: 14pt; color: #000; font-weight: bold;}
             .print-title { text-align: center; font-size: 18pt; font-weight: bold; text-decoration: underline; margin-bottom: 30px; color: #000;}
@@ -134,7 +159,6 @@
             .print-table th, .print-table td { border: 1px solid #000 !important; padding: 10px; text-align: center; color: #000 !important; font-size: 12pt; font-weight: bold;}
             .print-table th { background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; font-size: 13pt;}
             
-            /* التوقيعات المطلوبة */
             .print-signatures { display: flex; justify-content: space-between; padding: 0 50px; margin-top: 50px; }
             .print-signatures div { text-align: center; font-size: 14pt; font-weight: bold; color: #000; }
             .print-signatures p { margin-top: 50px; border-top: 1px solid #000; width: 200px; display: inline-block;}
@@ -151,7 +175,6 @@
             <div class="menu-grid">
                 <button class="btn" onclick="navTo('section-attendance')">📝 تسجيل الغياب اليومي</button>
                 <button class="btn" onclick="navTo('section-add-school')">🏫 إضافة مدرسة جديدة</button>
-                <button class="btn" onclick="navTo('section-search')">🔍 بحث عن تقرير مدرسة</button>
                 <button class="btn" style="border-color: var(--info); color: var(--info);" onclick="promptPassword('manage_schools')">🔒 تحديث المدارس (تعديل/حذف)</button>
                 <button class="btn" style="border-color: var(--danger); color: var(--danger);" onclick="promptPassword('admin')">🔒 تقرير المسئول والإحصاء</button>
             </div>
@@ -214,59 +237,34 @@
             <h2>إدارة المدارس (تعديل / حذف)</h2>
             <div class="table-responsive">
                 <table id="manageSchoolsTable">
-                    <thead>
-                        <tr>
-                            <th>اسم المدرسة</th>
-                            <th style="width: 150px;">إجراءات</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>اسم المدرسة</th><th style="width: 150px;">إجراءات</th></tr></thead>
                     <tbody id="manage-schools-body"></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="section-search" class="section no-print">
-            <button class="btn-back" onclick="navTo('section-home')">🔙 العودة للرئيسية</button>
-            <h2>البحث عن مدرسة</h2>
-            <div class="form-group">
-                <label>اختر المدرسة المراد البحث عنها</label>
-                <select id="search-school-select"><option value="" disabled selected>اختر المدرسة...</option></select>
-            </div>
-            <button class="btn btn-solid" onclick="searchSchool()">📊 عرض الإحصائيات</button>
-            <div id="search-results" style="margin-top: 1.5rem;"></div>
-        </div>
-
         <div id="section-admin" class="section">
             <button class="btn-back no-print" onclick="navTo('section-home')">🔙 العودة للرئيسية</button>
-            <h2>تقرير الموقف اليومي والإحصاء</h2>
+            <h2>تقرير الموقف اليومي للإدارة</h2>
             
+            <div class="export-btns no-print">
+                <div class="export-group">
+                    <button class="btn-danger-outline" onclick="promptDeleteAllRecords()">🗑️ مسح كل السجلات</button>
+                    <button class="btn-info-outline" onclick="loadAdminData()">🔄 تحديث البيانات</button>
+                </div>
+                <div class="export-group">
+                    <button class="btn-excel" onclick="exportToExcel()">تصدير Excel 📗</button>
+                    <button class="btn-pdf" onclick="exportOfficialPDF()">تقرير رسمي PDF 📕</button>
+                </div>
+            </div>
+
             <div class="charts-container no-print">
                 <div class="chart-box"><div class="chart-title">إجمالي الحضور والغياب</div><canvas id="pieChart"></canvas></div>
                 <div class="chart-box"><div class="chart-title">مقارنة الغياب بين الصفوف</div><canvas id="barChart"></canvas></div>
             </div>
 
-            <div class="export-btns no-print">
-                <button class="btn-excel" onclick="exportToExcel()">تصدير Excel 📗</button>
-                <button class="btn-pdf" onclick="exportOfficialPDF()">تقرير رسمي PDF 📕</button>
-            </div>
-
-            <div class="table-responsive">
-                <table id="adminTable">
-                    <thead>
-                        <tr>
-                            <th>التاريخ</th>
-                            <th>المدرسة</th>
-                            <th>غياب (أول)</th>
-                            <th>غياب (ثاني)</th>
-                            <th>غياب (ثالث)</th>
-                            <th>المقيد</th>
-                            <th>الحضور</th>
-                            <th>الغياب</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-table-body"></tbody>
-                </table>
-            </div>
+            <div id="admin-squares-container" class="squares-grid no-print">
+                </div>
         </div>
     </div>
 
@@ -285,6 +283,13 @@
             </div>
         </div>
     </div>
+
+    <table id="hidden-export-table">
+        <thead>
+            <tr><th>التاريخ</th><th>المدرسة</th><th>غياب (أول)</th><th>غياب (ثاني)</th><th>غياب (ثالث)</th><th>المقيد</th><th>الحضور</th><th>الغياب</th></tr>
+        </thead>
+        <tbody id="hidden-export-body"></tbody>
+    </table>
 
     <div id="official-print-report">
         <div class="print-header">
@@ -318,14 +323,8 @@
         </table>
 
         <div class="print-signatures">
-            <div>
-                رئيس قسم التعليم الإعدادي<br>
-                <p></p>
-            </div>
-            <div>
-                مدير عام الإدارة<br>
-                <p></p>
-            </div>
+            <div>رئيس قسم التعليم الإعدادي<br><p></p></div>
+            <div>مدير عام الإدارة<br><p></p></div>
         </div>
     </div>
 
@@ -335,16 +334,19 @@
         function getDB() {
             if (dbClient) return dbClient;
             if (typeof window.supabase !== 'undefined') {
+                // تفعيل منع الكاش نهائياً للبيانات لضمان أحدث نسخة من السيرفر
                 const url = 'https://dhtpuenpppiiovgdiwnc.supabase.co';
                 const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRodHB1ZW5wcHBpaW92Z2Rpd25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzI4NjksImV4cCI6MjA4ODE0ODg2OX0.tfXG7BZIVN3ec1iX5FxIsSu7W3Tl1aUQWsSOqJQ8uIw';
-                dbClient = window.supabase.createClient(url, key);
+                dbClient = window.supabase.createClient(url, key, {
+                    global: { headers: { 'Cache-Control': 'no-cache' } }
+                });
                 return dbClient;
             }
             return null;
         }
 
         /* ==================== النوافذ المنبثقة ==================== */
-        let pendingAction = ''; // لمعرفة الشاشة المطلوبة بعد إدخال الباسورد
+        let pendingAction = ''; 
 
         function showModal(title, text, type) {
             const modal = document.getElementById('customModal');
@@ -359,6 +361,7 @@
 
             inputPass.style.display = 'none'; inputText.style.display = 'none';
             cancelBtn.style.display = 'none'; okBtn.style.background = 'var(--primary)';
+            okBtn.innerText = "حسناً";
             okBtn.onclick = closeModal; inputPass.value = ''; inputText.value = '';
 
             if (type === 'success') { icon.innerText = '✔️'; icon.style.color = 'var(--success)'; } 
@@ -379,6 +382,12 @@
                 cancelBtn.style.display = 'block'; okBtn.style.background = 'var(--danger)';
                 okBtn.onclick = confirmDeleteSchool;
             }
+            else if (type === 'delete_all') {
+                icon.innerText = '⚠️'; icon.style.color = 'var(--danger)';
+                cancelBtn.style.display = 'block'; okBtn.style.background = 'var(--danger)';
+                okBtn.innerText = "نعم، مسح كل شيء";
+                okBtn.onclick = confirmDeleteAllRecords;
+            }
 
             modal.classList.add('show');
         }
@@ -396,11 +405,11 @@
         function navTo(sectionId) {
             document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
-            if(sectionId === 'section-attendance' || sectionId === 'section-search') loadSchools();
+            if(sectionId === 'section-attendance') loadSchools();
             if(sectionId === 'section-manage-schools') loadManageSchools();
         }
 
-        /* ==================== الحسابات والتاريخ ==================== */
+        /* ==================== الحسابات ==================== */
         document.addEventListener('DOMContentLoaded', () => {
             const daySel = document.getElementById('att-day'); const monthSel = document.getElementById('att-month');
             for(let i=1; i<=31; i++) daySel.innerHTML += `<option value="${i}">${i}</option>`;
@@ -430,10 +439,9 @@
                 const { data, error } = await db.from('schools').select('*').order('name');
                 if (!error && data.length > 0) {
                     const attSelect = document.getElementById('att-school'); 
-                    const searchSelect = document.getElementById('search-school-select');
                     let optionsHTML = '<option value="" disabled selected>اختر المدرسة...</option>';
                     data.forEach(s => optionsHTML += `<option value="${s.name}">${s.name}</option>`);
-                    attSelect.innerHTML = optionsHTML; searchSelect.innerHTML = optionsHTML;
+                    attSelect.innerHTML = optionsHTML;
                 }
             } catch (err) {}
         }
@@ -443,7 +451,6 @@
             const name = document.getElementById('new-school-name').value.trim();
             if(!name) return showModal("تنبيه", "الرجاء كتابة اسم المدرسة", "error");
             if (!db) return showModal("تنبيه", "لا يوجد اتصال بالخادم.", "error");
-            
             const btn = document.getElementById('btn-add-school'); btn.innerText = "جاري الحفظ... ⏳"; btn.disabled = true;
             try {
                 const { error } = await db.from('schools').insert([{ name: name }]);
@@ -454,19 +461,14 @@
             btn.innerText = "💾 حفظ المدرسة"; btn.disabled = false;
         }
 
-        /* ==================== تحديث وإدارة المدارس ==================== */
         let currentSchoolId = null;
-
         async function loadManageSchools() {
             const tbody = document.getElementById('manage-schools-body');
             const db = getDB();
             if (!db) { tbody.innerHTML = '<tr><td colspan="2">لا يوجد اتصال بالخادم</td></tr>'; return; }
-            
             tbody.innerHTML = '<tr><td colspan="2" style="color:var(--primary)">جاري التحميل...</td></tr>';
             const { data, error } = await db.from('schools').select('*').order('name');
-            
             if (error || !data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="2">لا توجد مدارس لعرضها</td></tr>'; return; }
-            
             tbody.innerHTML = '';
             data.forEach(school => {
                 tbody.innerHTML += `<tr>
@@ -479,43 +481,28 @@
             });
         }
 
-        function editSchool(id, oldName) {
-            currentSchoolId = id;
-            showModal("تعديل اسم المدرسة", `الاسم الحالي: ${oldName}`, "edit_school");
-            document.getElementById('modalInputText').value = oldName;
-        }
-
+        function editSchool(id, oldName) { currentSchoolId = id; showModal("تعديل اسم المدرسة", `الاسم الحالي: ${oldName}`, "edit_school"); document.getElementById('modalInputText').value = oldName; }
         async function confirmEditSchool() {
-            const newName = document.getElementById('modalInputText').value.trim();
-            if(!newName) return;
-            const db = getDB();
-            showModal("جاري التحديث...", "يرجى الانتظار", "info");
+            const newName = document.getElementById('modalInputText').value.trim(); if(!newName) return;
+            const db = getDB(); showModal("جاري التحديث...", "يرجى الانتظار", "info");
             const { error } = await db.from('schools').update({ name: newName }).eq('id', currentSchoolId);
-            if(error) { showModal("خطأ", "حدث خطأ أثناء التعديل", "error"); } 
-            else { showModal("نجاح", "تم تعديل المدرسة بنجاح", "success"); loadManageSchools(); }
+            if(error) { showModal("خطأ", "حدث خطأ أثناء التعديل", "error"); } else { showModal("نجاح", "تم تعديل المدرسة بنجاح", "success"); loadManageSchools(); }
         }
-
-        function deleteSchool(id, name) {
-            currentSchoolId = id;
-            showModal("تأكيد الحذف", `هل أنت متأكد من حذف مدرسة "${name}" نهائياً؟`, "delete_school");
-        }
-
+        function deleteSchool(id, name) { currentSchoolId = id; showModal("تأكيد الحذف", `هل أنت متأكد من حذف مدرسة "${name}" نهائياً؟`, "delete_school"); }
         async function confirmDeleteSchool() {
-            const db = getDB();
-            showModal("جاري الحذف...", "يرجى الانتظار", "info");
+            const db = getDB(); showModal("جاري الحذف...", "يرجى الانتظار", "info");
             const { error } = await db.from('schools').delete().eq('id', currentSchoolId);
-            if(error) { showModal("خطأ", "لا يمكن الحذف. قد تكون المدرسة مرتبطة بسجلات غياب.", "error"); } 
-            else { showModal("نجاح", "تم الحذف بنجاح", "success"); loadManageSchools(); }
+            if(error) { showModal("خطأ", "لا يمكن الحذف. قد تكون مرتبطة بسجلات.", "error"); } else { showModal("نجاح", "تم الحذف بنجاح", "success"); loadManageSchools(); }
         }
 
-        /* ==================== دوال الغياب والبحث ==================== */
+        /* ==================== إرسال الغياب ==================== */
         async function submitAttendance() {
             const db = getDB();
             const school = document.getElementById('att-school').value;
             const finalTotal = parseInt(document.getElementById('final-total').innerText);
             
             if(!school) return showModal("بيانات ناقصة", "الرجاء اختيار المدرسة أولاً.", "error");
-            if(finalTotal === 0) return showModal("بيانات ناقصة", "أدخل بيانات المقيد والحضور لصف واحد على الأقل.", "error");
+            if(finalTotal === 0) return showModal("بيانات ناقصة", "أدخل بيانات المقيد والحضور.", "error");
             if (!db) return showModal("تنبيه", "لا يوجد اتصال بالخادم.", "error");
 
             const btn = document.getElementById('btn-submit-att'); btn.innerText = "جاري الإرسال للخادم... ⏳"; btn.disabled = true;
@@ -538,50 +525,59 @@
             btn.innerText = "🚀 إرسال الغياب لقاعدة البيانات"; btn.disabled = false;
         }
 
-        async function searchSchool() {
-            const db = getDB();
-            const resDiv = document.getElementById('search-results');
-            const school = document.getElementById('search-school-select').value;
-            
-            if(!school) return showModal("تنبيه", "اختر المدرسة أولاً.", "error");
-            if (!db) { resDiv.innerHTML = "<p style='color:var(--danger); font-weight:bold;'>لا يوجد اتصال.</p>"; return; }
-
-            resDiv.innerHTML = "<p style='color:var(--primary); font-weight:bold;'>جاري البحث... ⏳</p>";
-            try {
-                const { data, error } = await db.from('daily_attendance').select('*').eq('school_name', school).order('created_at', { ascending: false });
-                if(error) throw error;
-                if(data.length === 0) { resDiv.innerHTML = "<p style='color:var(--danger); font-weight:bold;'>لا توجد سجلات لهذه المدرسة.</p>"; return; }
-                let html = '';
-                data.forEach(row => {
-                    html += `<div style="background:var(--input-bg); padding:1.2rem; border-radius:12px; margin-top:10px; border:1px solid var(--border-color);">
-                        <strong style="color:var(--primary); font-size:1.1rem;">📅 تاريخ التقرير: ${row.attendance_day}/${row.attendance_month}/${row.attendance_year}</strong><hr style="border-color:var(--border-color); opacity:0.3;">
-                        المقيد: <span style="color:var(--info); font-weight:bold;">${row.final_total}</span> | الحضور: <span style="color:var(--success); font-weight:bold;">${row.final_attend}</span> | الغياب: <span style="color:var(--danger); font-weight:bold;">${row.final_absent}</span>
-                    </div>`;
-                });
-                resDiv.innerHTML = html;
-            } catch(e) { resDiv.innerHTML = "<p style='color:var(--danger); font-weight:bold;'>فشل البحث.</p>"; }
-        }
-
-        /* ==================== لوحة المسئول والحماية ==================== */
+        /* ==================== لوحة المسئول ==================== */
         let pieChartInstance = null; let barChartInstance = null;
 
         function promptPassword(action) {
             pendingAction = action;
             let title = action === 'admin' ? "دخول الإدارة" : "إدارة وتحديث المدارس";
-            // تم التعديل هنا لعدم عرض كلمة السر في الرسالة!
             showModal(title, "يرجى إدخال كود الدخول السري الخاص بالإدارة:", "password");
         }
 
         function checkAdminPass() {
             if(document.getElementById('modalInputPass').value === "8888") { 
                 closeModal(); 
-                if (pendingAction === 'admin') {
-                    navTo('section-admin'); loadAdminData(); 
-                } else if (pendingAction === 'manage_schools') {
-                    navTo('section-manage-schools'); loadManageSchools();
+                if (pendingAction === 'admin') { navTo('section-admin'); loadAdminData(); } 
+                else if (pendingAction === 'manage_schools') { navTo('section-manage-schools'); loadManageSchools(); }
+            } else { showModal("كود خاطئ", "كلمة المرور غير صحيحة!", "error"); }
+        }
+
+        function toggleDayAcc(btn) {
+            btn.classList.toggle('active');
+            const content = btn.nextElementSibling;
+            content.classList.toggle('active');
+        }
+
+        // ==========================================
+        // دالة المسح القاضية (تم تعديلها للعمل إجبارياً)
+        // ==========================================
+        function promptDeleteAllRecords() {
+            showModal("تحذير خطير!", "هل أنت متأكد 100% من مسح جميع سجلات الغياب القديمة لكل المدارس؟", "delete_all");
+        }
+
+        async function confirmDeleteAllRecords() {
+            const db = getDB();
+            if (!db) return showModal("خطأ", "لا يوجد اتصال بالخادم", "error");
+            
+            showModal("جاري المسح...", "يرجى الانتظار، يتم تصفير البيانات بالكامل... ⏳", "info");
+            
+            try {
+                // تم وضع شرط منطقي (لا يساوي اسم فارغ) لإجبار السيرفر على حذف جميع السجلات
+                const { error } = await db.from('daily_attendance').delete().neq('school_name', '000000');
+                
+                if (error) {
+                    throw error;
                 }
-            } else { 
-                showModal("كود خاطئ", "كلمة المرور غير صحيحة!", "error"); 
+
+                // تفريغ الواجهة فوراً
+                document.getElementById('admin-squares-container').innerHTML = '<h3 style="text-align:center; color:var(--text-muted); padding: 2rem;">تم تصفير النظام بالكامل.</h3>';
+                document.getElementById('hidden-export-body').innerHTML = '';
+                document.getElementById('print-table-body').innerHTML = '';
+                renderCharts(0, 0, 0, 0, 0);
+
+                showModal("تم بنجاح", "تم مسح جميع بيانات الغياب من الخادم نهائياً.", "success");
+            } catch (err) {
+                showModal("عذراً، السيرفر يرفض المسح", "يجب تنفيذ الكود الموضح في رسالتي داخل SQL Editor بـ Supabase أولاً.", "error");
             }
         }
 
@@ -605,40 +601,105 @@
 
         async function loadAdminData() {
             const db = getDB();
-            const tbody = document.getElementById('admin-table-body');
-            tbody.innerHTML = '<tr><td colspan="8" style="color:var(--primary); font-weight:bold; padding:2rem;">جاري جلب التقارير... ⏳</td></tr>';
+            const squaresContainer = document.getElementById('admin-squares-container');
+            const exportBody = document.getElementById('hidden-export-body');
+            const printBody = document.getElementById('print-table-body');
+            
+            if (!db) { squaresContainer.innerHTML = '<h3 style="color:var(--danger); text-align:center;">لا يوجد اتصال بالخادم</h3>'; return; }
+
+            squaresContainer.innerHTML = '<h3 style="color:var(--primary); text-align:center;">جاري التحديث وجلب البيانات... ⏳</h3>';
+            exportBody.innerHTML = ''; printBody.innerHTML = '';
+
             try {
-                const { data, error } = await db.from('daily_attendance').select('*').order('created_at', { ascending: false });
+                let { data, error } = await db.from('daily_attendance').select('*');
                 if(error) throw error;
-                if(data.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="padding:2rem;">الجدول فارغ، لم يتم إرسال أي غياب.</td></tr>'; return; }
+                if(!data || data.length === 0) { 
+                    squaresContainer.innerHTML = '<h3 style="text-align:center; color:var(--text-muted); padding: 2rem;">لا توجد أي تقارير غياب مرسلة. النظام فارغ.</h3>'; 
+                    renderCharts(0, 0, 0, 0, 0); 
+                    return; 
+                }
                 
-                tbody.innerHTML = '';
+                data.sort((a, b) => {
+                    const dateA = new Date(a.attendance_year, a.attendance_month - 1, a.attendance_day);
+                    const dateB = new Date(b.attendance_year, b.attendance_month - 1, b.attendance_day);
+                    return dateB - dateA;
+                });
+
+                const schoolsData = {};
                 let sumAttend=0, sumAbsent=0, sumG1Abs=0, sumG2Abs=0, sumG3Abs=0;
 
                 data.forEach(row => {
                     sumAttend += (row.final_attend || 0); sumAbsent += (row.final_absent || 0);
                     sumG1Abs += (row.g1_absent || 0); sumG2Abs += (row.g2_absent || 0); sumG3Abs += (row.g3_absent || 0);
-                    tbody.innerHTML += `<tr>
-                        <td>${row.attendance_day}/${row.attendance_month}/${row.attendance_year}</td>
+
+                    if(!schoolsData[row.school_name]) { schoolsData[row.school_name] = []; }
+                    schoolsData[row.school_name].push(row);
+
+                    const dateStr = `${row.attendance_day}/${row.attendance_month}/${row.attendance_year}`;
+                    const tableRow = `<tr>
+                        <td>${dateStr}</td>
                         <td style="font-weight:bold;">${row.school_name}</td>
                         <td>${row.g1_absent || 0}</td><td>${row.g2_absent || 0}</td><td>${row.g3_absent || 0}</td>
-                        <td style="color:var(--info); font-weight:bold;">${row.final_total}</td>
-                        <td style="color:var(--success); font-weight:bold;">${row.final_attend}</td>
-                        <td style="color:var(--danger); font-weight:bold;">${row.final_absent}</td>
+                        <td style="font-weight:bold;">${row.final_total}</td>
+                        <td style="font-weight:bold;">${row.final_attend}</td>
+                        <td style="font-weight:bold;">${row.final_absent}</td>
                     </tr>`;
+                    exportBody.innerHTML += tableRow; printBody.innerHTML += tableRow;
                 });
+
+                squaresContainer.innerHTML = '';
+                for (const [schoolName, records] of Object.entries(schoolsData)) {
+                    
+                    let daysHTML = '';
+                    records.forEach((r, idx) => {
+                        const dStr = `${r.attendance_day}/${r.attendance_month}/${r.attendance_year}`;
+                        daysHTML += `
+                            <button class="sq-acc-btn" onclick="toggleDayAcc(this)">
+                                <span>📅 ${dStr}</span>
+                                <span style="font-size:0.8rem; background:rgba(255,255,255,0.1); padding:3px 8px; border-radius:5px;">إجمالي الغياب: ${r.final_absent} ⇦</span>
+                            </button>
+                            <div class="sq-acc-content">
+                                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:8px; margin-bottom:8px;">
+                                    <span style="color:var(--info)">المقيد: ${r.final_total}</span>
+                                    <span style="color:var(--success)">حضور: ${r.final_attend}</span>
+                                    <span style="color:var(--danger)">غياب: ${r.final_absent}</span>
+                                </div>
+                                <div style="text-align:center; color:var(--text-muted);">
+                                    <strong style="color:#fff;">غياب الصفوف:</strong><br>
+                                    أول: <span style="color:var(--danger)">${r.g1_absent || 0}</span> | 
+                                    ثاني: <span style="color:var(--danger)">${r.g2_absent || 0}</span> | 
+                                    ثالث: <span style="color:var(--danger)">${r.g3_absent || 0}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    const squareHTML = `
+                    <div class="school-square">
+                        <div class="sq-header">
+                            <div class="sq-icon">🏫</div>
+                            <div class="sq-title">${schoolName}</div>
+                        </div>
+                        <div class="sq-days-list">
+                            ${daysHTML}
+                        </div>
+                    </div>`;
+                    
+                    squaresContainer.innerHTML += squareHTML;
+                }
+                
                 renderCharts(sumAttend, sumAbsent, sumG1Abs, sumG2Abs, sumG3Abs);
-            } catch(e) { tbody.innerHTML = `<tr><td colspan="8" style="color:var(--danger); font-weight:bold; padding:2rem;">فشل الاتصال بالخادم.</td></tr>`; }
+            } catch(e) { squaresContainer.innerHTML = `<h3 style="color:var(--danger); text-align:center;">فشل الاتصال بالخادم.</h3>`; }
         }
 
         /* ==================== الطباعة والتصدير ==================== */
         function exportToExcel() {
-            const wb = XLSX.utils.table_to_book(document.getElementById("adminTable"), {sheet: "الموقف اليومي"});
+            if (typeof XLSX === 'undefined') { showModal("خطأ", "مكتبة الإكسيل محظورة.", "error"); return; }
+            const wb = XLSX.utils.table_to_book(document.getElementById("hidden-export-table"), {sheet: "الموقف اليومي"});
             XLSX.writeFile(wb, "تقرير_الغياب.xlsx");
         }
 
         function exportOfficialPDF() {
-            document.getElementById('print-table-body').innerHTML = document.getElementById('admin-table-body').innerHTML;
             const today = new Date(); document.getElementById('print-date-stamp').innerText = `${today.getDate()} / ${today.getMonth() + 1} / ${today.getFullYear()}`;
             window.print();
         }
