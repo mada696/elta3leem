@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منظومة الغياب المركزي | إدارة سوهاج</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-body: #F3F2F1; --bg-card: #FFFFFF; --text-main: #333333; 
+            --primary: #1D6F42; --primary-hover: #217346; --border-color: #d1d5db; 
+            --input-bg: #ffffff; --text-muted: #6b7280; --danger: #dc3545; 
+            --success: #198754; --info: #0dcaf0;         
+        }
+        body { margin: 0; padding: 2rem 1rem; font-family: 'Cairo', sans-serif; background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 1050px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 2.5rem; box-shadow: 0 8px 30px rgba(0,0,0,0.08); position: relative; }
+        h2 { text-align: center; color: var(--primary); margin-top: 0; margin-bottom: 2rem; border-bottom: 3px solid var(--primary); padding-bottom: 1rem;}
+        .section { display: none; animation: fadeIn 0.4s ease; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+        .btn { padding: 1.2rem; background: var(--bg-card); border: 2px solid var(--primary); border-radius: 8px; color: var(--primary); font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .btn:hover { background: var(--primary); color: #ffffff; transform: translateY(-8px) scale(1.05); box-shadow: 0 15px 25px rgba(29, 111, 66, 0.3); }
+        .btn-solid { background: var(--primary); color: #ffffff; width: 100%; margin-top: 1.5rem; border: none; padding: 1rem; font-size: 1.2rem; border-radius: 8px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+        .btn-solid:hover { background: var(--primary-hover); transform: translateY(-5px); box-shadow: 0 12px 25px rgba(29, 111, 66, 0.4);}
+        .btn-action { padding: 5px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+        .btn-action:hover { transform: translateY(-3px) scale(1.1); }
+        .btn-back { display: inline-block; margin-bottom: 1.5rem; background: none; border: none; color: var(--text-muted); cursor: pointer; text-decoration: underline; font-size: 1rem; font-weight: bold;}
+        .btn-back:hover { color: var(--primary); transform: translateX(5px); transition: 0.3s;}
+        
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 0.8rem; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-family: 'Cairo'; font-size: 1rem; box-sizing: border-box; transition: 0.3s; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29, 111, 66, 0.2); }
+        
+        /* ================== تبويبات شاشة تسجيل الغياب ================== */
+        .grade-tabs { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 8px; 
+            margin-bottom: 20px; 
+        }
+        .grade-tab { 
+            flex: 1 1 20%; 
+            background: var(--bg-body); 
+            border: 2px solid var(--border-color); 
+            color: var(--text-main); 
+            padding: 10px 5px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            font-family: 'Cairo'; 
+            font-size: 0.95rem; 
+            cursor: pointer; 
+            transition: all 0.3s; 
+            text-align: center; 
+        }
+        .grade-tab.active { 
+            background: var(--primary); 
+            border-color: var(--primary); 
+            color: #fff; 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 10px rgba(29, 111, 66, 0.2); 
+        }
+        .grade-content { display: none; animation: fadeIn 0.4s ease; }
+        .grade-content.active { display: block; }
+        
+        .grade-card { background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .grade-title { color: var(--primary); margin: 0 0 1rem 0; font-size: 1.3rem; border-bottom: 2px dashed var(--border-color); padding-bottom: 0.8rem; text-align: center; }
+        .inputs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .date-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        
+        /* =============================================================== */
+
+        .table-responsive { overflow-x: auto; margin-top: 1.5rem; }
+        table { width: 100%; border-collapse: collapse; text-align: center; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
+        th, td { padding: 12px; border: 1px solid var(--border-color); }
+        th { background: var(--primary); color: #fff; }
+        
+        .search-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .search-tab { background: #fff; border: 2px solid var(--primary); color: var(--primary); padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .search-tab.active { background: var(--primary); color: #fff; }
+        .search-type-content { display: none; } .search-type-content.active { display: block; }
+        
+        /* تصميم الرادار المصغر للموبايل */
+        .alerts-container { background: #fff; border: 2px solid var(--primary); border-radius: 12px; padding: 15px; margin-bottom: 2rem; }
+        .radar-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; border-bottom: 2px dashed var(--border-color); padding-bottom: 20px; }
+        .stat-card { padding: 10px 5px; border-radius: 8px; text-align: center; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .stat-card h4 { margin: 0 0 5px 0; font-size: 0.75rem; line-height: 1.2; }
+        .stat-card span { font-size: 1.4rem; }
+        .bg-green-stat { background-color: var(--success); color: white; border: 2px solid #146c43; }
+        .bg-yellow-stat { background-color: #ffc107; color: #333; border: 2px solid #e0a800; }
+        .bg-red-stat { background-color: var(--danger); color: white; border: 2px solid #b02a37; }
+        .alerts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 8px; justify-content: center; }
+        .school-box { display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid var(--border-color); border-radius: 8px; padding: 8px 4px; min-height: 85px; text-align: center; font-weight: bold; font-size: 0.7rem; line-height: 1.4; gap: 6px; cursor: help; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .school-box:active { transform: scale(0.95); }
+        .box-green { border-color: var(--success); background-color: #f1fcf5; }
+        .box-yellow { border-color: #ffc107; background-color: #fffdf5; }
+        .box-red { border-color: var(--danger); background-color: #fff5f5; animation: boxPulseRed 2s infinite; }
+        .circle-indicator { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
+        .bg-green { background: var(--success); } .bg-yellow { background: #ffc107; } .bg-red { background: var(--danger); }
+        @keyframes boxPulseRed { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
+
+        .search-result-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .search-result-card:hover { border-color: var(--primary); transform: translateY(-8px) scale(1.02); box-shadow: 0 15px 30px rgba(29, 111, 66, 0.15); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-content { background: #fff; border-radius: 12px; padding: 2rem; text-align: center; width: 90%; max-width: 500px; border: 2px solid var(--primary); }
+        .modal-textarea { width: 100%; margin: 15px 0; padding: 10px; border-radius: 8px; border: 1px solid var(--primary); font-family: 'Cairo'; }
+        #official-print-report, #hidden-export-table { display: none; }
+        
+        @media (max-width: 600px) {
+            .container { padding: 1.5rem; margin-top: 1rem; }
+            h2 { font-size: 1.3rem; }
+            .btn { padding: 1rem; font-size: 1rem; }
+            .grade-tab { font-size: 0.85rem; padding: 8px 2px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="section-home" class="section active no-print">
+            <h2>المنظومة الشاملة | الغياب المركزي</h2>
+            <div class="menu-grid">
+                <button class="btn" onclick="navTo('section-attendance')">📝 تسجيل الغياب اليومي</button>
+                <button class="btn" onclick="showBulkAddModal()">🏫 إضافة مدارس (رصد سريع)</button>
+                <button class="btn" onclick="navTo('section-search')">🔍 استعلام مفصل (يوم/فترة/شهر)</button>
+                <button class="btn" onclick="navTo('section-radar')">🚦 رادار التزام المدارس</button>
+                <button class="btn" style="border-color: #dc3545; color: #dc3545;" onclick="promptPassword('manage_schools')">🔒 إدارة المدارس (تعديل/حذف)</button>
+                <button class="btn" style="background: var(--primary); color: #fff;" onclick="promptPassword('admin')">📊 تقرير الإدارة والإحصاء</button>
+            </div>
+        </div>
+
+        <div id="section-attendance" class="section no-print">
+            <button class="btn-back" onclick="navTo('section-home')">🔙 العودة للرئيسية</button>
+            <h2>تسجيل الغياب مفصل</h2>
+            
+            <div class="form-group">
+                <label>تاريخ اليوم</label>
+                <div class="date-grid"><select id="att-day"></select><select id="att-month"></select><select id="att-year"><option value="2026">2026</option><option value="2027">2027</option></select></div>
+            </div>
+            <div class="form-group">
+                <label>اسم المدرسة</label>
+                <input type="text" id="att-school-search" placeholder="🔍 اكتب للبحث السريع (يتم الاختيار تلقائياً)..." onkeyup="filterAttendanceSchool()" style="margin-bottom: 8px; border: 2px solid var(--primary); background: #e8f4ec;">
+                <select id="att-school" required><option value="" disabled selected>أو اختر من القائمة...</option></select>
+            </div>
+
+            <div class="grade-tabs">
+                <button class="grade-tab active" onclick="switchGradeTab('g1', this)">الصف الأول</button>
+                <button class="grade-tab" onclick="switchGradeTab('g2', this)">الصف الثاني</button>
+                <button class="grade-tab" onclick="switchGradeTab('g3', this)">الصف الثالث</button>
+                <button class="grade-tab" onclick="switchGradeTab('final', this)">الإحصاء</button>
+            </div>
+
+            <div id="content-g1" class="grade-content active">
+                <div class="grade-card"><h3 class="grade-title">بيانات الصف الأول</h3><div class="inputs-grid"><div><label>المقيد</label><input type="number" id="g1-total" class="calc-input" min="0" placeholder="0"></div><div><label>الحضور</label><input type="number" id="g1-attend" class="calc-input" min="0" placeholder="0"></div><div><label>الغياب</label><input type="text" id="g1-absent" readonly placeholder="0"></div></div></div>
+            </div>
+
+            <div id="content-g2" class="grade-content">
+                <div class="grade-card"><h3 class="grade-title">بيانات الصف الثاني</h3><div class="inputs-grid"><div><label>المقيد</label><input type="number" id="g2-total" class="calc-input" min="0" placeholder="0"></div><div><label>الحضور</label><input type="number" id="g2-attend" class="calc-input" min="0" placeholder="0"></div><div><label>الغياب</label><input type="text" id="g2-absent" readonly placeholder="0"></div></div></div>
+            </div>
+
+            <div id="content-g3" class="grade-content">
+                <div class="grade-card"><h3 class="grade-title">بيانات الصف الثالث</h3><div class="inputs-grid"><div><label>المقيد</label><input type="number" id="g3-total" class="calc-input" min="0" placeholder="0"></div><div><label>الحضور</label><input type="number" id="g3-attend" class="calc-input" min="0" placeholder="0"></div><div><label>الغياب</label><input type="text" id="g3-absent" readonly placeholder="0"></div></div></div>
+            </div>
+
+            <div id="content-final" class="grade-content">
+                <div class="grade-card" style="border-color: var(--primary); background: #e8f4ec;">
+                    <h3 class="grade-title" style="border-bottom-color: var(--primary);">الإحصاء الختامي للمدرسة</h3>
+                    <div class="inputs-grid">
+                        <div style="text-align:center"><label>إجمالي المقيد</label><h3 id="final-total" style="margin:0; color:var(--text-main); font-size:1.8rem;">0</h3></div>
+                        <div style="text-align:center"><label>إجمالي الحضور</label><h3 id="final-attend" style="margin:0; color:var(--success); font-size:1.8rem;">0</h3></div>
+                        <div style="text-align:center"><label>إجمالي الغياب</label><h3 id="final-absent" style="margin:0; color:var(--danger); font-size:1.8rem;">0</h3></div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-solid" onclick="submitAttendance()" id="btn-submit-att">🚀 حفظ وإرسال البيانات</button>
+        </div>
+
+        <div id="section-manage-schools" class="section no-print">
+            <button class="btn-back" onclick="navTo('section-home')">🔙 العودة للرئيسية</button>
+            <h2>إدارة المدارس (تعديل / حذف)</h2>
+            <div class="table-responsive">
+                <table id="manageSchoolsTable">
+                    <thead><tr><th>اسم المدرسة</th><th style="width: 100px;">إجراءات</th></tr></thead>
+                    <tbody id="manage-schools-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="section-search" class="section no-print">
+            <button class="btn-back" onclick="navTo('section-home')">🔙 العودة للرئيسية</button>
+            <h2>استعلام مفصل عن الغياب</h2>
+            <div class="form-group">
+                <label style="font-size: 1.1rem; color: var(--primary);">🏫 اكتب اسم المدرسة للبحث:</label>
+                <input type="text" id="query-school-search" placeholder="🔍 اكتب هنا وسيتم الاختيار تلقائياً..." onkeyup="filterQuerySchool()" style="margin-bottom: 8px; border: 2px solid var(--primary); background: #e8f4ec;">
+                <select id="search-school-select" style="font-size: 1.1rem; padding: 12px; border: 2px solid var(--primary); width: 100%; border-radius: 8px;"><option value="" disabled selected>أو اختر من القائمة...</option></select>
+            </div>
+            
+            <div class="search-tabs">
+                <button class="search-tab active" onclick="switchSearchTab('day', this)">📅 يوم محدد</button>
+                <button class="search-tab" onclick="switchSearchTab('range', this)">🗓️ فترة (من/إلى)</button>
+                <button class="search-tab" onclick="switchSearchTab('month', this)">📆 شهر كامل</button>
+            </div>
+
+            <div id="search-inputs-day" class="search-type-content active"><div class="form-group"><label>اختر التاريخ:</label><input type="date" id="search-exact-date" style="border: 2px solid var(--primary);"></div></div>
+            <div id="search-inputs-range" class="search-type-content"><div class="form-group date-grid" style="grid-template-columns: 1fr 1fr;"><div><label>من تاريخ:</label><input type="date" id="search-start-date" style="border: 2px solid var(--primary);"></div><div><label>إلى تاريخ:</label><input type="date" id="search-end-date" style="border: 2px solid var(--primary);"></div></div></div>
+            <div id="search-inputs-month" class="search-type-content"><div class="form-group date-grid" style="grid-template-columns: 1fr 1fr;"><div><label>عن شهر:</label><select id="search-month" style="border: 2px solid var(--primary);"></select></div><div><label>لسنة:</label><select id="search-year" style="border: 2px solid var(--primary);"><option value="2026">2026</option><option value="2027">2027</option></select></div></div></div>
+
+            <button class="btn btn-solid" onclick="executeAdvancedSearch()">🔍 استخراج التقرير</button>
+            <div id="search-results-container" style="margin-top: 20px;"></div>
+        </div>
+
+        <div id="section-radar" class="section no-print">
+            <button class="btn-back" onclick="navTo('section-home')">🔙 العودة للرئيسية</button>
+            <h2>🚦 رادار التزام المدارس</h2>
+            
+            <div class="alerts-container">
+                <div class="radar-stats">
+                    <div class="stat-card bg-green-stat"><h4>سجلت اليوم</h4><span id="stat-green">0</span></div>
+                    <div class="stat-card bg-yellow-stat"><h4>تأخير (يوم)</h4><span id="stat-yellow">0</span></div>
+                    <div class="stat-card bg-red-stat"><h4>منقطعة</h4><span id="stat-red">0</span></div>
+                </div>
+                <div id="public-alerts-grid" class="alerts-grid"></div>
+            </div>
+            <button class="btn btn-solid" onclick="loadRadarData()">🔄 فحص وتحديث الرادار</button>
+        </div>
+
+        <div id="section-admin" class="section">
+            <button class="btn-back no-print" onclick="navTo('section-home')">🔙 العودة للرئيسية</button>
+            <h2>تقرير الإدارة والموقف اليومي</h2>
+            <div class="export-btns no-print">
+                <div class="export-group"><button class="btn-danger-outline" onclick="promptDeleteAllRecords()">🗑️ مسح كل السجلات</button><button class="btn-info-outline" onclick="loadAdminData()">🔄 تحديث البيانات</button></div>
+                <div class="export-group"><button class="btn-excel" onclick="exportToExcel()">تصدير Excel 📗</button><button class="btn-pdf" onclick="exportOfficialPDF()">تقرير PDF 📕</button></div>
+            </div>
+            <div class="charts-container no-print">
+                <div class="chart-box"><div class="chart-title">إجمالي الحضور والغياب</div><canvas id="pieChart"></canvas></div>
+                <div class="chart-box"><div class="chart-title">مقارنة الغياب بين الصفوف</div><canvas id="barChart"></canvas></div>
+            </div>
+            <div class="table-responsive">
+                <table id="adminTable">
+                    <thead><tr><th>التاريخ</th><th>المدرسة</th><th>غياب (أول)</th><th>غياب (ثاني)</th><th>غياب (ثالث)</th><th>المقيد</th><th>الحضور</th><th>الغياب</th></tr></thead>
+                    <tbody id="admin-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="customModal" class="modal-overlay no-print">
+        <div class="modal-content">
+            <div id="modalIcon" class="modal-icon">✔️</div>
+            <h3 id="modalTitle" class="modal-title">العنوان</h3>
+            <div id="modalText" class="modal-text">نص الرسالة</div>
+            <textarea id="modalTextarea" class="modal-textarea" rows="7" placeholder="مثال:&#10;مدرسة النيل الإعدادية&#10;مدرسة الحديثة بنات"></textarea>
+            <input type="password" id="modalInputPass" class="modal-input-pass" placeholder="****" maxlength="4" onkeyup="if(event.key === 'Enter') checkAdminPass()">
+            <input type="text" id="modalInputText" class="modal-input-text" placeholder="اكتب هنا..." onkeyup="if(event.key === 'Enter') confirmEditSchool()">
+            <div class="modal-btns">
+                <button id="modalOkBtn" class="btn-modal btn-modal-ok">حسناً</button>
+                <button id="modalCancelBtn" class="btn-modal btn-modal-cancel" onclick="closeModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <table id="hidden-export-table"><thead><tr><th>التاريخ</th><th>المدرسة</th><th>غياب (أول)</th><th>غياب (ثاني)</th><th>غياب (ثالث)</th><th>المقيد</th><th>الحضور</th><th>الغياب</th></tr></thead><tbody id="hidden-export-body"></tbody></table>
+
+    <div id="official-print-report">
+        <div class="print-header"><div class="right-header"><h4>محافظة سوهاج</h4><h4>مديرية التربية والتعليم</h4><h4>إدارة سوهاج التعليمية</h4></div><div class="left-header"><h4>تاريخ الطباعة: <span id="print-date-stamp"></span></h4><h4>إدارة الإحصاء والمعلومات</h4></div></div>
+        <h2 class="print-title">تقرير الموقف اليومي الشامل لغياب المدارس الإعدادية</h2>
+        <table class="print-table"><thead><tr><th>التاريخ</th><th>اسم المدرسة</th><th>غياب (أول)</th><th>غياب (ثاني)</th><th>غياب (ثالث)</th><th>المقيد</th><th>الحضور</th><th>الغياب النهائي</th></tr></thead><tbody id="print-table-body"></tbody></table>
+        <div class="print-signatures"><div>رئيس قسم التعليم الإعدادي<br><p></p></div><div>مدير عام الإدارة<br><p></p></div></div>
+    </div>
+
+    <script>
+        const monthNamesArabic = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+        let dbClient = null;
+
+        function getDB() {
+            if (dbClient) return dbClient;
+            if (typeof window.supabase !== 'undefined') {
+                const url = 'https://dhtpuenpppiiovgdiwnc.supabase.co';
+                const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRodHB1ZW5wcHBpaW92Z2Rpd25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzI4NjksImV4cCI6MjA4ODE0ODg2OX0.tfXG7BZIVN3ec1iX5FxIsSu7W3Tl1aUQWsSOqJQ8uIw';
+                dbClient = window.supabase.createClient(url, key, { global: { headers: { 'Cache-Control': 'no-cache' } } });
+                return dbClient;
+            }
+            return null;
+        }
+
+        function normalizeArabic(text) {
+            if (!text) return "";
+            return text.replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/[\u064B-\u065F]/g, '');
+        }
+
+        let pendingAction = ''; 
+        let pendingRecordToSubmit = null;
+        let pendingOldTotals = null;
+
+        function showModal(title, text, type) {
+            const modal = document.getElementById('customModal');
+            const icon = document.getElementById('modalIcon');
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalText').innerText = text;
+            
+            ['modalInputPass', 'modalInputText', 'modalTextarea', 'modalCancelBtn'].forEach(id => document.getElementById(id).style.display = 'none');
+            const okBtn = document.getElementById('modalOkBtn');
+            const cancelBtn = document.getElementById('modalCancelBtn');
+            okBtn.innerText = "حسناً"; okBtn.onclick = closeModal; 
+            
+            if (type === 'success') { icon.innerText = '✔️'; icon.style.color = 'var(--success)'; } 
+            else if (type === 'error') { icon.innerText = '⚠️'; icon.style.color = 'var(--danger)'; } 
+            else if (type === 'info') { icon.innerText = '⏳'; icon.style.color = 'var(--primary)'; }
+            else if (type === 'password') {
+                icon.innerText = '🔒'; document.getElementById('modalInputPass').style.display = 'block'; cancelBtn.style.display = 'block';
+                okBtn.onclick = checkAdminPass; setTimeout(() => document.getElementById('modalInputPass').focus(), 100);
+            }
+            else if (type === 'edit_school') {
+                icon.innerText = '✏️'; document.getElementById('modalInputText').style.display = 'block'; cancelBtn.style.display = 'block';
+                okBtn.onclick = confirmEditSchool; setTimeout(() => document.getElementById('modalInputText').focus(), 100);
+            }
+            else if (type === 'delete_school') {
+                icon.innerText = '🗑️'; cancelBtn.style.display = 'block'; okBtn.style.background = 'var(--danger)'; okBtn.onclick = confirmDeleteSchool;
+            }
+            else if (type === 'delete_all') {
+                icon.innerText = '⚠️'; cancelBtn.style.display = 'block'; okBtn.style.background = 'var(--danger)'; okBtn.innerText = "تأكيد المسح"; okBtn.onclick = confirmDeleteAllRecords;
+            }
+            else if (type === 'bulk_add') {
+                icon.innerText = '🏫'; document.getElementById('modalTextarea').style.display = 'block'; cancelBtn.style.display = 'block';
+                okBtn.innerText = "حفظ المدارس"; okBtn.onclick = confirmBulkAddSchools; setTimeout(() => document.getElementById('modalTextarea').focus(), 100);
+            }
+            else if (type === 'confirm_total_change') {
+                icon.innerText = '🤔'; icon.style.color = '#ffc107'; 
+                cancelBtn.style.display = 'block';
+                cancelBtn.style.background = '#f8f9fa'; cancelBtn.style.color = 'var(--text-main)';
+                okBtn.innerText = "حفظ الرقم الجديد"; 
+                cancelBtn.innerText = "التراجع للرقم القديم";
+                okBtn.onclick = () => { closeModal(); executeSubmit(pendingRecordToSubmit); };
+                cancelBtn.onclick = () => { restoreOldTotals(); };
+            }
+            modal.classList.add('show');
+        }
+
+        function closeModal() { document.getElementById('customModal').classList.remove('show'); }
+
+        function navTo(sectionId) {
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            if(sectionId === 'section-attendance') { 
+                loadSchools(); 
+                document.getElementById('att-school-search').value = '';
+                // إرجاع التبويب للصف الأول عند فتح الشاشة
+                document.querySelector('.grade-tab').click(); 
+            }
+            if(sectionId === 'section-search') { loadSchools(); document.getElementById('query-school-search').value = ''; }
+            if(sectionId === 'section-manage-schools') loadManageSchools();
+            if(sectionId === 'section-radar') loadRadarData(); 
+        }
+
+        // دالة التبديل بين التبويبات في شاشة تسجيل الغياب
+        function switchGradeTab(tabId, btnElement) {
+            document.querySelectorAll('.grade-tab').forEach(b => b.classList.remove('active')); 
+            btnElement.classList.add('active');
+            document.querySelectorAll('.grade-content').forEach(c => c.classList.remove('active')); 
+            document.getElementById('content-' + tabId).classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSchools();
+            const daySel = document.getElementById('att-day'); const monthSel = document.getElementById('att-month'); const searchMonthSel = document.getElementById('search-month');
+            for(let i=1; i<=31; i++) daySel.innerHTML += `<option value="${i}">${i}</option>`;
+            for(let i=1; i<=12; i++) {
+                monthSel.innerHTML += `<option value="${i}">${monthNamesArabic[i-1]}</option>`;
+                searchMonthSel.innerHTML += `<option value="${i}">${monthNamesArabic[i-1]}</option>`;
+            }
+            const today = new Date(); daySel.value = today.getDate(); monthSel.value = today.getMonth() + 1; searchMonthSel.value = today.getMonth() + 1;
+            const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            document.getElementById('search-exact-date').value = todayString; document.getElementById('search-start-date').value = todayString; document.getElementById('search-end-date').value = todayString;
+            
+            document.querySelectorAll('.calc-input').forEach(input => { input.addEventListener('input', calculateAllGrades); });
+        });
+
+        function calculateAllGrades() {
+            let finalTot = 0, finalAtt = 0, finalAbs = 0;
+            for(let i=1; i<=3; i++) {
+                let tInput = document.getElementById(`g${i}-total`); let aInput = document.getElementById(`g${i}-attend`); let abInput = document.getElementById(`g${i}-absent`);
+                let t = parseInt(tInput.value) || 0; let a = parseInt(aInput.value) || 0; 
+                
+                if(a > t && t !== 0) {
+                    aInput.style.boxShadow = '0 0 0 3px rgba(220, 53, 69, 0.5)'; aInput.style.borderColor = 'var(--danger)'; aInput.style.color = 'var(--danger)';
+                    abInput.value = "❌"; 
+                } else {
+                    aInput.style.boxShadow = ''; aInput.style.borderColor = ''; aInput.style.color = 'var(--text-main)';
+                    let ab = Math.max(0, t - a); abInput.value = ab;
+                }
+                let abFinal = (a > t && t !== 0) ? 0 : Math.max(0, t - a);
+                finalTot += t; finalAtt += a; finalAbs += abFinal;
+            }
+            document.getElementById('final-total').innerText = finalTot; document.getElementById('final-attend').innerText = finalAtt; document.getElementById('final-absent').innerText = finalAbs;
+        }
+
+        let globalSchoolsList = []; 
+        async function loadSchools() {
+            const db = getDB(); if (!db) return;
+            try {
+                const { data, error } = await db.from('schools').select('*').order('name');
+                if (!error && data) {
+                    globalSchoolsList = data; 
+                    renderSchoolDropdown(data, 'att-school'); renderSchoolDropdown(data, 'search-school-select');
+                }
+            } catch (err) {}
+        }
+
+        function renderSchoolDropdown(dataList, selectId) {
+            const selectEl = document.getElementById(selectId); if(!selectEl) return;
+            let optionsHTML = '<option value="" disabled selected>أو اختر من القائمة...</option>';
+            dataList.forEach(s => { optionsHTML += `<option value="${s.name}">${s.name}</option>`; });
+            selectEl.innerHTML = optionsHTML;
+        }
+
+        function filterAttendanceSchool() {
+            const rawSearch = document.getElementById('att-school-search').value.trim(); const searchTerm = normalizeArabic(rawSearch.toLowerCase());
+            const filtered = globalSchoolsList.filter(s => { return normalizeArabic(s.name.toLowerCase()).includes(searchTerm); });
+            renderSchoolDropdown(filtered, 'att-school');
+            if(filtered.length > 0 && searchTerm !== "") document.getElementById('att-school').value = filtered[0].name;
+        }
+
+        function filterQuerySchool() {
+            const rawSearch = document.getElementById('query-school-search').value.trim(); const searchTerm = normalizeArabic(rawSearch.toLowerCase());
+            const filtered = globalSchoolsList.filter(s => { return normalizeArabic(s.name.toLowerCase()).includes(searchTerm); });
+            renderSchoolDropdown(filtered, 'search-school-select');
+            if(filtered.length > 0 && searchTerm !== "") document.getElementById('search-school-select').value = filtered[0].name;
+        }
+
+        function showBulkAddModal() { showModal("إضافة مدارس (رصد سريع)", "اكتب أو انسخ أسماء المدارس هنا (كل مدرسة في سطر منفصل):", "bulk_add"); }
+
+        async function confirmBulkAddSchools() {
+            const db = getDB(); const text = document.getElementById('modalTextarea').value;
+            if(!text.trim()) { showModal("تنبيه", "الرجاء كتابة أسماء المدارس أولاً.", "error"); return; }
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+            const validSchools = []; let invalidCount = 0;
+            lines.forEach(line => {
+                if(line.length >= 3 && /[a-zA-Z\u0600-\u06FF]/.test(line)) validSchools.push({ name: line }); else invalidCount++;
+            });
+            if(validSchools.length === 0) { showModal("خطأ إدخال", "لم يتم العثور على أي أسماء صحيحة!", "error"); return; }
+            showModal("جاري الحفظ...", "يرجى الانتظار، يتم رفع المدارس... ⏳", "info");
+            try {
+                const { error } = await db.from('schools').insert(validSchools);
+                if(error) throw error;
+                showModal("تم الحفظ", `تمت إضافة ${validSchools.length} مدرسة بنجاح.` + (invalidCount > 0 ? `\n(تم تجاهل ${invalidCount} إدخال غير صالح).` : ""), "success");
+                loadSchools(); 
+            } catch (err) { showModal("خطأ", "فشل الحفظ. راجع إعدادات حماية Supabase (RLS).", "error"); }
+        }
+
+        let currentSchoolId = null;
+        async function loadManageSchools() {
+            const tbody = document.getElementById('manage-schools-body'); const db = getDB();
+            if (!db) return;
+            tbody.innerHTML = '<tr><td colspan="2">جاري التحميل...</td></tr>';
+            const { data, error } = await db.from('schools').select('*').order('name');
+            if (error || !data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="2">لا توجد مدارس.</td></tr>'; return; }
+            tbody.innerHTML = '';
+            data.forEach(school => {
+                tbody.innerHTML += `<tr><td style="font-weight:bold;">${school.name}</td><td><button class="btn-action" style="background:#0dcaf0; color:#fff;" onclick="editSchool('${school.id}', '${school.name}')">تعديل ✏️</button> <button class="btn-action" style="background:#dc3545; color:#fff;" onclick="deleteSchool('${school.id}', '${school.name}')">حذف 🗑️</button></td></tr>`;
+            });
+        }
+
+        function editSchool(id, oldName) { currentSchoolId = id; showModal("تعديل المدرسة", `الاسم الحالي: ${oldName}`, "edit_school"); document.getElementById('modalInputText').value = oldName; }
+        async function confirmEditSchool() {
+            const newName = document.getElementById('modalInputText').value.trim(); if(!newName) return;
+            if(newName.length < 3 || !/[a-zA-Z\u0600-\u06FF]/.test(newName)) { showModal("خطأ", "الاسم غير صالح.", "error"); return; }
+            const db = getDB(); showModal("جاري التحديث...", "يرجى الانتظار", "info");
+            const { error } = await db.from('schools').update({ name: newName }).eq('id', currentSchoolId);
+            if(error) showModal("خطأ", "فشل التعديل", "error"); else { showModal("نجاح", "تم التعديل", "success"); loadManageSchools(); loadSchools(); }
+        }
+        function deleteSchool(id, name) { currentSchoolId = id; showModal("تأكيد الحذف", `هل أنت متأكد من حذف "${name}"؟`, "delete_school"); }
+        async function confirmDeleteSchool() {
+            const db = getDB(); showModal("جاري الحذف...", "يرجى الانتظار", "info");
+            const { error } = await db.from('schools').delete().eq('id', currentSchoolId);
+            if(error) showModal("خطأ", "فشل الحذف.", "error"); else { showModal("نجاح", "تم الحذف", "success"); loadManageSchools(); loadSchools(); }
+        }
+
+        function restoreOldTotals() {
+            if(pendingOldTotals) {
+                document.getElementById('g1-total').value = pendingOldTotals.g1_total || '';
+                document.getElementById('g2-total').value = pendingOldTotals.g2_total || '';
+                document.getElementById('g3-total').value = pendingOldTotals.g3_total || '';
+                calculateAllGrades();
+            }
+            closeModal();
+        }
+
+        async function executeSubmit(recordToSubmit) {
+            const db = getDB(); const btn = document.getElementById('btn-submit-att'); btn.innerText = "جاري الإرسال... ⏳"; btn.disabled = true;
+            try {
+                const { error } = await db.from('daily_attendance').insert([recordToSubmit]);
+                if(error) throw error;
+                showModal("تمت الإضافة", "تم إرسال الغياب بنجاح.", "success");
+                document.querySelectorAll('.calc-input').forEach(i => { i.value = ''; i.style.borderColor = ''; i.style.boxShadow = ''; });
+                calculateAllGrades();
+                document.querySelector('.grade-tab').click(); // العودة للتبويب الأول
+            } catch(e) { showModal("خطأ", "فشل الإرسال. تأكد من اتصالك.", "error"); }
+            btn.innerText = "🚀 حفظ وإرسال البيانات"; btn.disabled = false;
+        }
+
+        async function submitAttendance() {
+            const db = getDB(); 
+            let school = document.getElementById('att-school').value; 
+            const rawSearch = document.getElementById('att-school-search').value.trim();
+            if (!school && rawSearch !== "") {
+                const normSearch = normalizeArabic(rawSearch.toLowerCase());
+                const possibleMatch = globalSchoolsList.find(s => normalizeArabic(s.name.toLowerCase()).includes(normSearch));
+                if (possibleMatch) school = possibleMatch.name;
+            }
+            const finalTotal = parseInt(document.getElementById('final-total').innerText);
+            
+            if(!school) return showModal("تنبيه", "الرجاء كتابة أو اختيار اسم المدرسة.", "error"); 
+            if(finalTotal === 0) return showModal("تنبيه", "أدخل بيانات المقيد والحضور.", "error"); 
+
+            for(let i=1; i<=3; i++) {
+                let t = parseInt(document.getElementById(`g${i}-total`).value) || 0; let a = parseInt(document.getElementById(`g${i}-attend`).value) || 0;
+                if(a > t && t !== 0) return showModal("خطأ في الإدخال ⚠️", `عدد الحضور في الصف ${i === 1 ? 'الأول' : i === 2 ? 'الثاني' : 'الثالث'} لا يمكن أن يكون أكبر من المقيد!`, "error");
+            }
+            if (!db) return;
+            
+            const btn = document.getElementById('btn-submit-att'); btn.innerText = "جاري التحقق... ⏳"; btn.disabled = true;
+            const record = {
+                school_name: school, attendance_day: parseInt(document.getElementById('att-day').value), attendance_month: parseInt(document.getElementById('att-month').value), attendance_year: parseInt(document.getElementById('att-year').value),
+                g1_total: parseInt(document.getElementById('g1-total').value)||0, g1_attend: parseInt(document.getElementById('g1-attend').value)||0, g1_absent: parseInt(document.getElementById('g1-absent').value)||0,
+                g2_total: parseInt(document.getElementById('g2-total').value)||0, g2_attend: parseInt(document.getElementById('g2-attend').value)||0, g2_absent: parseInt(document.getElementById('g2-absent').value)||0,
+                g3_total: parseInt(document.getElementById('g3-total').value)||0, g3_attend: parseInt(document.getElementById('g3-attend').value)||0, g3_absent: parseInt(document.getElementById('g3-absent').value)||0,
+                final_total: finalTotal, final_attend: parseInt(document.getElementById('final-attend').innerText), final_absent: parseInt(document.getElementById('final-absent').innerText)
+            };
+
+            try {
+                const { data: lastRecs, error: fetchErr } = await db.from('daily_attendance')
+                    .select('final_total, g1_total, g2_total, g3_total')
+                    .eq('school_name', school)
+                    .order('attendance_year', { ascending: false }).order('attendance_month', { ascending: false }).order('attendance_day', { ascending: false })
+                    .limit(1);
+
+                if (lastRecs && lastRecs.length > 0) {
+                    const oldTotal = lastRecs[0].final_total;
+                    if (oldTotal !== finalTotal) {
+                        pendingRecordToSubmit = record; pendingOldTotals = lastRecs[0];
+                        showModal("تنبيه: تغير في قوة المدرسة!", `المقيد الكلي الآن: (${finalTotal})\nآخر قيد مسجل: (${oldTotal})\n\nهل تريد حفظ الرقم الجديد أم استرجاع القديم؟`, "confirm_total_change");
+                        btn.innerText = "🚀 حفظ وإرسال البيانات"; btn.disabled = false;
+                        return; 
+                    }
+                }
+                await executeSubmit(record);
+            } catch(e) { await executeSubmit(record); }
+        }
+
+        let currentSearchMode = 'day';
+        function switchSearchTab(mode, btnElement) {
+            currentSearchMode = mode;
+            document.querySelectorAll('.search-tab').forEach(b => b.classList.remove('active')); btnElement.classList.add('active');
+            document.querySelectorAll('.search-type-content').forEach(c => c.classList.remove('active')); document.getElementById('search-inputs-' + mode).classList.add('active');
+        }
+        function parseHTMLDate(dateStr) {
+            if(!dateStr) return null; const [y, m, d] = dateStr.split('-'); return { day: parseInt(d), month: parseInt(m), year: parseInt(y), dateObj: new Date(y, m - 1, d) };
+        }
+
+        async function executeAdvancedSearch() {
+            const db = getDB(); 
+            let school = document.getElementById('search-school-select').value; 
+            const rawSearch = document.getElementById('query-school-search').value.trim();
+            if (!school && rawSearch !== "") {
+                const normSearch = normalizeArabic(rawSearch.toLowerCase());
+                const possibleMatch = globalSchoolsList.find(s => normalizeArabic(s.name.toLowerCase()).includes(normSearch));
+                if (possibleMatch) school = possibleMatch.name;
+            }
+            const container = document.getElementById('search-results-container');
+            if(!school) return showModal("تنبيه", "الرجاء كتابة أو اختيار اسم المدرسة أولاً.", "error"); 
+            if (!db) return;
+            
+            container.innerHTML = "<h3 style='color:var(--primary); text-align:center;'>جاري البحث... ⏳</h3>";
+            try {
+                const { data, error } = await db.from('daily_attendance').select('*').eq('school_name', school);
+                if(error) throw error;
+                let filteredData = []; let reportTitle = "";
+                if (currentSearchMode === 'day') {
+                    const exactDateVal = document.getElementById('search-exact-date').value; if(!exactDateVal) { container.innerHTML = ""; return showModal("تنبيه", "الرجاء تحديد تاريخ اليوم", "error"); }
+                    const exactDate = parseHTMLDate(exactDateVal);
+                    filteredData = data.filter(r => Number(r.attendance_day) === exactDate.day && Number(r.attendance_month) === exactDate.month && Number(r.attendance_year) === exactDate.year);
+                    reportTitle = `تقرير يوم: ${exactDate.day} ${monthNamesArabic[exactDate.month - 1]} ${exactDate.year}`;
+                } else if (currentSearchMode === 'range') {
+                    const startVal = document.getElementById('search-start-date').value; const endVal = document.getElementById('search-end-date').value;
+                    if(!startVal || !endVal) { container.innerHTML = ""; return showModal("تنبيه", "الرجاء تحديد بداية ونهاية الفترة", "error"); }
+                    const startDate = parseHTMLDate(startVal).dateObj; const endDate = parseHTMLDate(endVal).dateObj; endDate.setHours(23,59,59,999); 
+                    if(startDate > endDate) { container.innerHTML = ""; return showModal("تنبيه", "تاريخ البداية يجب أن يكون قبل النهاية", "error"); }
+                    filteredData = data.filter(r => { const rDate = new Date(Number(r.attendance_year), Number(r.attendance_month) - 1, Number(r.attendance_day)); return rDate >= startDate && rDate <= endDate; });
+                    reportTitle = `تقرير الفترة من (${startVal}) إلى (${endVal})`;
+                } else if (currentSearchMode === 'month') {
+                    const sMonth = Number(document.getElementById('search-month').value); const sYear = Number(document.getElementById('search-year').value);
+                    filteredData = data.filter(r => Number(r.attendance_month) === sMonth && Number(r.attendance_year) === sYear);
+                    reportTitle = `تقرير شهر ${monthNamesArabic[sMonth - 1]} لسنة ${sYear}`;
+                }
+
+                filteredData.sort((a, b) => {
+                    const dateA = new Date(Number(a.attendance_year), Number(a.attendance_month) - 1, Number(a.attendance_day));
+                    const dateB = new Date(Number(b.attendance_year), Number(b.attendance_month) - 1, Number(b.attendance_day));
+                    return dateA - dateB; 
+                });
+
+                if(filteredData.length === 0) { container.innerHTML = `<div style="text-align:center; padding:2rem; background:var(--bg-body); border-radius:12px; border:1px solid var(--border-color);"><h3 style="color:var(--danger);">لم يتم العثور على سجلات!</h3></div>`; return; }
+
+                let html = `<div style="background:#e8f4ec; border:2px solid var(--primary); border-radius:12px; padding:15px; margin-bottom:20px; text-align:center;"><h3 style="margin:0 0 10px 0; color:var(--primary);">🏫 مدرسة: ${school}</h3><h4 style="margin:0; color:var(--text-main); font-size:1.1rem;">${reportTitle}</h4><p style="margin:10px 0 0 0; font-weight:bold; color:var(--text-muted);">تم العثور على: <span style="color:var(--danger); font-size:1.3rem;">${filteredData.length}</span> سجلات</p></div><div style="display:flex; flex-direction:column; gap:15px;">`;
+                filteredData.forEach(r => {
+                    const monthName = monthNamesArabic[Number(r.attendance_month) - 1];
+                    html += `<div class="search-result-card"><h4 style="color:var(--primary); margin:0 0 15px 0; border-bottom:1px dashed var(--border-color); padding-bottom:10px;">📅 يوم ${r.attendance_day} ${monthName} ${r.attendance_year}</h4><div style="display:flex; justify-content:space-around; text-align:center; margin-bottom:15px;"><div><span style="color:var(--text-muted); font-size:0.9rem; display:block;">المقيد</span><span style="color:var(--text-main); font-weight:bold; font-size:1.2rem;">${r.final_total}</span></div><div><span style="color:var(--text-muted); font-size:0.9rem; display:block;">الحضور</span><span style="color:var(--success); font-weight:bold; font-size:1.2rem;">${r.final_attend}</span></div><div><span style="color:var(--text-muted); font-size:0.9rem; display:block;">الغياب الكلي</span><span style="color:var(--danger); font-weight:bold; font-size:1.2rem;">${r.final_absent}</span></div></div><div style="text-align:center; font-size:0.95rem; color:var(--text-main); background:var(--bg-body); padding:10px; border-radius:8px; font-weight:bold;">تفصيل غياب الصفوف ⇦ ( الأول: <span style="color:var(--danger)">${r.g1_absent||0}</span> | الثاني: <span style="color:var(--danger)">${r.g2_absent||0}</span> | الثالث: <span style="color:var(--danger)">${r.g3_absent||0}</span> )</div></div>`;
+                });
+                html += `</div>`; container.innerHTML = html;
+            } catch(e) { container.innerHTML = "<p style='color:var(--danger); text-align:center;'>حدث خطأ أثناء معالجة البيانات.</p>"; }
+        }
+
+        async function loadRadarData() {
+            const db = getDB(); const alertsGrid = document.getElementById('public-alerts-grid'); if (!db) return;
+            
+            alertsGrid.innerHTML = '<p style="color:var(--primary); text-align:center; width:100%;">جاري فحص وتحديث الرادار... ⏳</p>';
+            document.getElementById('stat-green').innerText = '0';
+            document.getElementById('stat-yellow').innerText = '0';
+            document.getElementById('stat-red').innerText = '0';
+
+            try {
+                const { data: schoolsList } = await db.from('schools').select('name');
+                let { data, error } = await db.from('daily_attendance').select('school_name, attendance_day, attendance_month, attendance_year');
+                if(error) throw error;
+                
+                let systemMaxDate = new Date(0); const latestRecordBySchool = {};
+                if (data && data.length > 0) {
+                    data.forEach(r => {
+                        const rDate = new Date(r.attendance_year, r.attendance_month - 1, r.attendance_day);
+                        if(rDate > systemMaxDate) systemMaxDate = rDate;
+                        if(!latestRecordBySchool[r.school_name] || rDate > latestRecordBySchool[r.school_name]) latestRecordBySchool[r.school_name] = rDate;
+                    });
+                } else { systemMaxDate = new Date(); systemMaxDate.setHours(0,0,0,0); }
+                
+                let alertsHTML = '';
+                let countGreen = 0, countYellow = 0, countRed = 0;
+
+                if(schoolsList && schoolsList.length > 0) {
+                    schoolsList.forEach(school => {
+                        let boxClass = 'box-red'; let dotClass = 'bg-red'; let tooltip = 'لم تسجل أي غياب نهائياً';
+                        if(latestRecordBySchool[school.name]) {
+                            const diffTime = systemMaxDate - latestRecordBySchool[school.name]; 
+                            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                            
+                            if(diffDays <= 0) { boxClass = 'box-green'; dotClass = 'bg-green'; tooltip = 'مسجلة اليوم'; countGreen++; }
+                            else if (diffDays === 1) { boxClass = 'box-yellow'; dotClass = 'bg-yellow'; tooltip = 'تأخير يوم واحد'; countYellow++; }
+                            else { boxClass = 'box-red'; dotClass = 'bg-red'; tooltip = `منقطعة ومتاخرة (${diffDays} أيام)`; countRed++; }
+                        } else { countRed++; }
+                        
+                        alertsHTML += `
+                            <div class="school-box ${boxClass}" title="${tooltip}">
+                                <div class="circle-indicator ${dotClass}"></div>
+                                <span>${school.name}</span>
+                            </div>`;
+                    });
+                    
+                    alertsGrid.innerHTML = alertsHTML;
+                    document.getElementById('stat-green').innerText = countGreen;
+                    document.getElementById('stat-yellow').innerText = countYellow;
+                    document.getElementById('stat-red').innerText = countRed;
+
+                } else { alertsGrid.innerHTML = '<p>لا توجد مدارس مسجلة.</p>'; }
+            } catch (err) { alertsGrid.innerHTML = `<p style="color:var(--danger); text-align:center; width:100%;">حدث خطأ أثناء تحميل الرادار.</p>`; }
+        }
+
+        let pieChartInstance = null; let barChartInstance = null;
+        function promptPassword(action) { pendingAction = action; showModal(action === 'admin' ? "دخول لوحة الإدارة" : "إدارة النظام", "يرجى إدخال كود المرور:", "password"); }
+        function checkAdminPass() { if(document.getElementById('modalInputPass').value === "8888") { closeModal(); if (pendingAction === 'admin') { navTo('section-admin'); loadAdminData(); } else { navTo('section-manage-schools'); loadManageSchools(); } } else { showModal("مرفوض", "الكود غير صحيح!", "error"); } }
+        function promptDeleteAllRecords() { showModal("تنبيه النظام", "هل أنت متأكد من مسح جميع السجلات المكتوبة؟", "delete_all"); }
+        async function confirmDeleteAllRecords() {
+            const db = getDB(); if (!db) return; showModal("تحديث...", "جاري الحذف والتصفير... ⏳", "info");
+            try {
+                const { data, error: fetchError } = await db.from('daily_attendance').select('id');
+                if (fetchError) throw fetchError;
+                if (data && data.length > 0) { for (let i = 0; i < data.length; i++) await db.from('daily_attendance').delete().eq('id', data[i].id); }
+                document.getElementById('admin-table-body').innerHTML = '<tr><td colspan="8">تم التصفير.</td></tr>';
+                document.getElementById('hidden-export-body').innerHTML = ''; document.getElementById('print-table-body').innerHTML = '';
+                renderCharts(0, 0, 0, 0, 0); showModal("نجاح", "تم تصفير قاعدة البيانات بنجاح.", "success");
+            } catch (err) { showModal("خطأ", "يجب إيقاف حماية RLS في Supabase لجدول الغياب.", "error"); }
+        }
+
+        function renderCharts(totalAttend, totalAbsent, g1Abs, g2Abs, g3Abs) {
+            const ctxPie = document.getElementById('pieChart').getContext('2d'); const ctxBar = document.getElementById('barChart').getContext('2d');
+            if (pieChartInstance) pieChartInstance.destroy(); if (barChartInstance) barChartInstance.destroy();
+            Chart.defaults.color = '#333333'; Chart.defaults.font.family = 'Cairo';
+            pieChartInstance = new Chart(ctxPie, { type: 'doughnut', data: { labels: ['الحضور', 'الغياب'], datasets: [{ data: [totalAttend, totalAbsent], backgroundColor: ['#198754', '#dc3545'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+            barChartInstance = new Chart(ctxBar, { type: 'bar', data: { labels: ['الأول', 'الثاني', 'الثالث'], datasets: [{ label: 'الغياب', data: [g1Abs, g2Abs, g3Abs], backgroundColor: '#1D6F42', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+        }
+
+        async function loadAdminData() {
+            const db = getDB(); const tbody = document.getElementById('admin-table-body'); const exportBody = document.getElementById('hidden-export-body'); const printBody = document.getElementById('print-table-body');
+            if (!db) return; tbody.innerHTML = '<tr><td colspan="8" style="color:var(--primary);">جاري التحميل... ⏳</td></tr>'; exportBody.innerHTML = ''; printBody.innerHTML = '';
+            try {
+                let { data, error } = await db.from('daily_attendance').select('*');
+                if(error) throw error;
+                if(!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="8">النظام فارغ حالياً.</td></tr>'; renderCharts(0, 0, 0, 0, 0); return; }
+                data.sort((a, b) => new Date(b.attendance_year, b.attendance_month - 1, b.attendance_day) - new Date(a.attendance_year, a.attendance_month - 1, a.attendance_day));
+                tbody.innerHTML = ''; let sumAttend=0, sumAbsent=0, sumG1Abs=0, sumG2Abs=0, sumG3Abs=0;
+                data.forEach(row => {
+                    sumAttend += (row.final_attend || 0); sumAbsent += (row.final_absent || 0); sumG1Abs += (row.g1_absent || 0); sumG2Abs += (row.g2_absent || 0); sumG3Abs += (row.g3_absent || 0);
+                    const monthName = monthNamesArabic[Number(row.attendance_month) - 1]; const dateStr = `${row.attendance_day} ${monthName} ${row.attendance_year}`;
+                    const tableRow = `<tr><td>${dateStr}</td><td style="font-weight:bold;">${row.school_name}</td><td>${row.g1_absent || 0}</td><td>${row.g2_absent || 0}</td><td>${row.g3_absent || 0}</td><td style="font-weight:bold; color:var(--primary);">${row.final_total}</td><td style="font-weight:bold; color:var(--success);">${row.final_attend}</td><td style="font-weight:bold; color:var(--danger);">${row.final_absent}</td></tr>`;
+                    tbody.innerHTML += tableRow; exportBody.innerHTML += tableRow; printBody.innerHTML += tableRow;
+                });
+                renderCharts(sumAttend, sumAbsent, sumG1Abs, sumG2Abs, sumG3Abs);
+            } catch(e) { tbody.innerHTML = `<tr><td colspan="8" style="color:var(--danger);">خطأ في الجلب.</td></tr>`; }
+        }
+
+        function exportToExcel() { if (typeof XLSX === 'undefined') { showModal("خطأ", "مكتبة الإكسيل غير متاحة.", "error"); return; } const wb = XLSX.utils.table_to_book(document.getElementById("hidden-export-table"), {sheet: "الموقف اليومي"}); XLSX.writeFile(wb, "تقرير_الغياب_المركزي.xlsx"); }
+        function exportOfficialPDF() { document.getElementById('print-table-body').innerHTML = document.getElementById('admin-table-body').innerHTML; const today = new Date(); document.getElementById('print-date-stamp').innerText = `${today.getDate()} / ${monthNamesArabic[today.getMonth()]} / ${today.getFullYear()}`; window.print(); }
+    </script>
+</body>
+</html>
