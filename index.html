@@ -20,6 +20,7 @@
             flex-direction: column;
             align-items: center;
             gap: 10px;
+            padding: 0 20px; /* مسافة أمان يمين ويسار للشاشات الصغيرة */
         }
         
         /* النص الرسمي باللون الأبيض النقي */
@@ -41,7 +42,7 @@
             border-bottom: 2px solid rgba(255,255,255,0.3);
             padding: 25px 0; 
             text-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            white-space: nowrap;
+            line-height: 1.4;
         }
         
         .designer-box { 
@@ -88,6 +89,33 @@
             0% { transform: rotate(0deg); } 
             100% { transform: rotate(360deg); } 
         }
+
+        /* ================= تصغير الخطوط لشاشات الموبايل ================= */
+        @media (max-width: 600px) {
+            h3 { 
+                font-size: 1.1rem; /* تصغير اسم الإدارة والقسم */
+            }
+            h1 {
+                font-size: 1.8rem; /* تصغير العنوان الرئيسي بشكل مناسب */
+                padding: 15px 0;
+                margin: 15px 0;
+            }
+            .designer-box {
+                margin-top: 30px;
+                padding: 10px 25px;
+            }
+            .designer-box p {
+                font-size: 1rem;
+            }
+            .designer-name {
+                font-size: 1.6rem; /* تصغير اسم المصمم */
+            }
+            .loader {
+                width: 40px;
+                height: 40px;
+                margin-top: 30px;
+            }
+        }
     </style>
     <script>
         // التحويل التلقائي لصفحة التسجيل بعد 4 ثواني
@@ -101,6 +129,7 @@
         <h3>مديرية التربية والتعليم بسوهاج</h3>
         <h3>إدارة سوهاج التعليمية</h3>
         <h3>قسم التعليم الإعدادي والثانوي</h3>
+        
         <h1>تسجيل الغياب اليومي للمدارس</h1>
         
         <div class="designer-box">
