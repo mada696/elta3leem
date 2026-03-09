@@ -76,10 +76,13 @@
         th, td { padding: 12px; border: 1px solid var(--border-color); }
         th { background: var(--primary); color: #fff; }
         
-        .search-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
-        .search-tab { background: #fff; border: 2px solid var(--primary); color: var(--primary); padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; }
-        .search-tab.active { background: var(--primary); color: #fff; }
-        .search-type-content { display: none; } .search-type-content.active { display: block; }
+        /* تنسيقات البحث الذكي الجديدة */
+        .search-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 20px; }
+        .search-tab { flex: 1 1 calc(25% - 10px); min-width: 140px; background: #fff; border: 2px solid var(--primary); color: var(--primary); padding: 8px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; text-align: center; font-size: 0.95rem; transition: 0.3s;}
+        .search-tab.active { background: var(--primary); color: #fff; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(29, 111, 66, 0.2);}
+        
+        .smart-input-box { display: none; animation: fadeIn 0.4s ease; }
+        .smart-input-box.active { display: block; }
         
         .alerts-container { background: #fff; border: 2px solid var(--primary); border-radius: 12px; padding: 15px; margin-bottom: 2rem; }
         .radar-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; border-bottom: 2px dashed var(--border-color); padding-bottom: 20px; }
@@ -99,8 +102,10 @@
         .bg-green { background: var(--success); } .bg-yellow { background: #ffc107; } .bg-red { background: var(--danger); }
         @keyframes boxPulseRed { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
-        .search-result-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .search-result-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden;}
         .search-result-card:hover { border-color: var(--primary); transform: translateY(-8px) scale(1.02); box-shadow: 0 15px 30px rgba(29, 111, 66, 0.15); }
+        .rank-badge { position: absolute; top: 0; left: 0; background: var(--danger); color: #fff; padding: 5px 15px; border-bottom-right-radius: 12px; font-weight: bold; font-size: 1.1rem; }
+        .percent-badge { position: absolute; top: 0; left: 0; background: #ffc107; color: #333; padding: 5px 15px; border-bottom-right-radius: 12px; font-weight: bold; font-size: 1.1rem; border-right: 1px solid #e0a800; border-bottom: 1px solid #e0a800;}
         
         .export-btns { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px; padding: 15px; background: var(--bg-body); border-radius: 8px; border: 1px solid var(--border-color);}
         .export-group { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -158,6 +163,10 @@
         .receipt-table .total-row { background-color: #e8f4ec; color: var(--primary); font-size: 1rem; }
         .receipt-footer { margin-top: 15px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 10px; }
 
+        /* زر الواتساب */
+        .btn-whatsapp { background-color: #25D366; color: #fff; border: none; padding: 10px 25px; border-radius: 8px; font-family: 'Cairo'; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; margin-top: 10px; width: 100%; }
+        .btn-whatsapp:hover { background-color: #128C7E; transform: translateY(-2px); }
+
         #official-print-report, #hidden-export-table { display: none; }
         
         @media print {
@@ -187,6 +196,9 @@
             .btn-menu { font-size: 1rem; padding: 0.8rem; }
             .admin-filter-box { flex-direction: column; gap: 10px; }
             .checkbox-container label { font-size: 0.9rem; }
+            .modal-btns { flex-direction: column; }
+            .btn-whatsapp { width: 100%; }
+            .search-tab { flex: 1 1 100%; font-size: 1rem;}
         }
     </style>
 </head>
@@ -194,7 +206,6 @@
     <div class="container">
         <div id="section-home" class="section active no-print">
             <h2>المنظومة الشاملة | الغياب المركزي</h2>
-            
             <div class="menu-grid">
                 <button class="btn-menu" onclick="navTo('section-attendance')">
                     <div class="icon-box" style="background: linear-gradient(135deg, #e0f2fe, #bae6fd);">📝</div>
@@ -206,7 +217,7 @@
                 </button>
                 <button class="btn-menu" onclick="navTo('section-search')">
                     <div class="icon-box" style="background: linear-gradient(135deg, #fef08a, #fde047);">🔍</div>
-                    <span class="menu-text">استعلام مفصل (يوم/فترة/شهر)</span>
+                    <span class="menu-text">استعلام وتحليل ذكي</span>
                 </button>
                 <button class="btn-menu" onclick="navTo('section-radar')">
                     <div class="icon-box" style="background: linear-gradient(135deg, #ffedd5, #fdba74);">🚦</div>
@@ -269,12 +280,21 @@
                 </div>
             </div>
 
-            <button class="btn btn-solid" style="margin-top: 10px;" onclick="submitAttendance()" id="btn-submit-att">🚀 حفظ وإرسال البيانات</button>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn btn-solid" style="margin-top: 0; flex: 2;" onclick="submitAttendance()" id="btn-submit-att">🚀 حفظ وإرسال البيانات</button>
+                <button class="btn btn-solid" style="margin-top: 0; flex: 1; background: #6c757d; border-color: #6c757d;" onclick="navTo('section-home')">🏠 الرئيسية</button>
+            </div>
         </div>
 
         <div id="section-manage-schools" class="section no-print">
             <button class="btn-back" onclick="navTo('section-home')">🔙 العودة للرئيسية</button>
-            <h2>إدارة المدارس (تعديل / حذف)</h2>
+            <h2>إدارة المدارس (إضافة / تعديل / حذف)</h2>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                <button class="btn btn-solid" style="margin-top: 0; flex: 1; background: var(--success);" onclick="showSingleAddModal()">➕ إضافة مدرسة واحدة</button>
+                <button class="btn btn-solid" style="margin-top: 0; flex: 1; background: var(--primary);" onclick="showBulkAddModal()">📋 إضافة مجموعة مدارس</button>
+            </div>
+
             <div class="table-responsive">
                 <table id="manageSchoolsTable">
                     <thead><tr><th>اسم المدرسة</th><th style="width: 100px;">إجراءات</th></tr></thead>
@@ -285,24 +305,60 @@
 
         <div id="section-search" class="section no-print">
             <button class="btn-back" onclick="navTo('section-home')">🔙 العودة للرئيسية</button>
-            <h2>استعلام مفصل عن الغياب</h2>
-            <div class="form-group">
-                <label style="font-size: 1.1rem; color: var(--primary);">🏫 اكتب اسم المدرسة للبحث:</label>
-                <input type="text" id="query-school-search" placeholder="🔍 اكتب هنا وسيتم الاختيار تلقائياً..." onkeyup="filterQuerySchool()" style="margin-bottom: 8px; border: 2px solid var(--primary); background: #e8f4ec;">
-                <select id="search-school-select" style="font-size: 1.1rem; padding: 12px; border: 2px solid var(--primary); width: 100%; border-radius: 8px;"><option value="" disabled selected>أو اختر من القائمة...</option></select>
-            </div>
+            <h2>لوحة الاستعلام والتحليل الذكي</h2>
             
             <div class="search-tabs">
-                <button class="search-tab active" onclick="switchSearchTab('day', this)">📅 يوم محدد</button>
-                <button class="search-tab" onclick="switchSearchTab('range', this)">🗓️ فترة (من/إلى)</button>
-                <button class="search-tab" onclick="switchSearchTab('month', this)">📆 شهر كامل</button>
+                <button class="search-tab active" onclick="switchSmartMode('school', this)">🏫 مدرسة محددة</button>
+                <button class="search-tab" onclick="switchSmartMode('allday', this)">📅 حصر يومي (للكل)</button>
+                <button class="search-tab" onclick="switchSmartMode('topabsent', this)">📉 الأكثر غياباً</button>
+                <button class="search-tab" onclick="switchSmartMode('highpercent', this)">⚠️ نسب خطرة</button>
             </div>
 
-            <div id="search-inputs-day" class="search-type-content active"><div class="form-group"><label>اختر التاريخ:</label><input type="date" id="search-exact-date" style="border: 2px solid var(--primary);"></div></div>
-            <div id="search-inputs-range" class="search-type-content"><div class="form-group date-grid" style="grid-template-columns: 1fr 1fr;"><div><label>من تاريخ:</label><input type="date" id="search-start-date" style="border: 2px solid var(--primary);"></div><div><label>إلى تاريخ:</label><input type="date" id="search-end-date" style="border: 2px solid var(--primary);"></div></div></div>
-            <div id="search-inputs-month" class="search-type-content"><div class="form-group date-grid" style="grid-template-columns: 1fr 1fr;"><div><label>عن شهر:</label><select id="search-month" style="border: 2px solid var(--primary);"></select></div><div><label>لسنة:</label><select id="search-year" style="border: 2px solid var(--primary);"><option value="2026">2026</option><option value="2027">2027</option></select></div></div></div>
+            <div style="background:#e8f4ec; padding:15px; border-radius:8px; border:2px solid var(--primary); margin-bottom:15px;">
+                
+                <div id="smart-input-school" class="smart-input-box active">
+                    <div class="form-group">
+                        <label style="color: var(--primary);">اختر المدرسة:</label>
+                        <select id="smart-school-select" style="border: 2px solid var(--primary);"><option value="" disabled selected>اختر من القائمة...</option></select>
+                    </div>
+                    <div class="form-group date-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div><label>من تاريخ:</label><input type="date" id="smart-school-start" style="border: 2px solid var(--primary);"></div>
+                        <div><label>إلى تاريخ:</label><input type="date" id="smart-school-end" style="border: 2px solid var(--primary);"></div>
+                    </div>
+                </div>
 
-            <button class="btn btn-solid" onclick="executeAdvancedSearch()">🔍 استخراج التقرير</button>
+                <div id="smart-input-allday" class="smart-input-box">
+                    <div class="form-group">
+                        <label style="color: var(--primary);">اختر اليوم لعرض غياب جميع المدارس:</label>
+                        <input type="date" id="smart-allday-date" style="border: 2px solid var(--primary);">
+                    </div>
+                </div>
+
+                <div id="smart-input-topabsent" class="smart-input-box">
+                    <div class="form-group date-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div><label style="color: var(--primary);">عن شهر:</label><select id="smart-top-month" style="border: 2px solid var(--primary);"></select></div>
+                        <div><label style="color: var(--primary);">لسنة:</label><select id="smart-top-year" style="border: 2px solid var(--primary);"><option value="2026">2026</option><option value="2027">2027</option></select></div>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin:0;">* يعرض أكثر 10 مدارس بها حالات غياب كعدد إجمالي خلال الشهر.</p>
+                </div>
+
+                <div id="smart-input-highpercent" class="smart-input-box">
+                    <div class="form-group">
+                        <label style="color: var(--danger);">ابحث عن المدارس التي تخطت نسبة غياب:</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="number" id="smart-percent-val" placeholder="مثال: 10" style="border: 2px solid var(--danger); width: 80px; text-align: center; font-weight: bold; font-size: 1.2rem;" value="10">
+                            <span style="font-size: 1.5rem; font-weight: bold; color: var(--danger);">%</span>
+                        </div>
+                    </div>
+                    <div class="form-group date-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 0;">
+                        <div><label style="color: var(--primary);">خلال شهر:</label><select id="smart-percent-month" style="border: 2px solid var(--primary);"></select></div>
+                        <div><label style="color: var(--primary);">لسنة:</label><select id="smart-percent-year" style="border: 2px solid var(--primary);"><option value="2026">2026</option><option value="2027">2027</option></select></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <button class="btn btn-solid" onclick="executeSmartSearch()">🔍 تنفيذ التحليل</button>
             <div id="search-results-container" style="margin-top: 20px;"></div>
         </div>
 
@@ -323,7 +379,6 @@
         <div id="section-admin" class="section no-print">
             <button class="btn-back" onclick="navTo('section-home')">🔙 العودة للرئيسية</button>
             <h2>تقرير الإدارة والموقف اليومي</h2>
-            
             <div class="admin-filter-box">
                 <label style="color: var(--primary); font-size: 1.1rem; margin: 0;">📅 عرض التقرير حسب اليوم:</label>
                 <select id="admin-date-filter" onchange="filterAdminTable()" style="border: 2px solid var(--primary); font-weight: bold; width: auto; min-width: 200px;">
@@ -359,8 +414,9 @@
             <input type="text" id="modalInputSingleSchool" class="modal-input" placeholder="اكتب اسم المدرسة هنا..." onkeyup="if(event.key === 'Enter') confirmSingleAdd()">
             <input type="password" id="modalInputPass" class="modal-input-pass" placeholder="****" maxlength="4" onkeyup="if(event.key === 'Enter') checkAdminPass()">
             <input type="text" id="modalInputText" class="modal-input" placeholder="اكتب هنا..." onkeyup="if(event.key === 'Enter') confirmEditSchool()">
-            
-            <div id="edit-attendance-form">
+            <textarea id="modalInputBulkSchools" class="modal-input" rows="8" placeholder="الزق أسماء المدارس هنا...&#10;مدرسة النيل&#10;مدرسة السلام" style="resize: vertical; font-size: 1rem; text-align: right;"></textarea>
+
+            <div id="edit-attendance-form" style="display:none; text-align: right; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                     <div><label style="color:var(--primary); font-size:0.9rem; font-weight:bold;">مقيد (أول)</label><input type="number" id="edit-g1-t" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-color); text-align:center; font-family:'Cairo'; font-size:1.1rem; box-sizing: border-box;"></div>
                     <div><label style="color:var(--success); font-size:0.9rem; font-weight:bold;">حضور (أول)</label><input type="number" id="edit-g1-a" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-color); text-align:center; font-family:'Cairo'; font-size:1.1rem; box-sizing: border-box;"></div>
@@ -389,12 +445,13 @@
                         <tr class="total-row"><td>الإجمالي</td><td id="rcpt-total">0</td><td id="rcpt-attend" style="color:var(--success)">0</td><td id="rcpt-absent" style="color:var(--danger)">0</td></tr>
                     </tbody>
                 </table>
-                <div class="receipt-footer">منظومة الغياب المركزي | إدارة سوهاج</div>
+                <div class="receipt-footer">تم الحفظ في منظومة الغياب المركزي | إدارة سوهاج</div>
             </div>
 
-            <div class="modal-btns">
+            <div class="modal-btns" id="modal-buttons-container">
                 <button id="modalOkBtn" class="btn-modal btn-modal-ok">حسناً</button>
-                <button id="modalDownloadBtn" class="btn-modal" style="display:none; background:#198754; color:#fff;" onclick="downloadReceipt()">📸 تحميل الإيصال</button>
+                <button id="modalDownloadBtn" class="btn-modal" style="display:none; background:#198754; color:#fff;" onclick="downloadReceipt()">📸 تحميل كصورة</button>
+                <button id="modalWhatsappBtn" class="btn-whatsapp" style="display:none;" onclick="shareOnWhatsapp()">مشاركة عبر الواتساب 💬</button>
                 <button id="modalCancelBtn" class="btn-modal btn-modal-cancel" onclick="closeModal()">إلغاء</button>
             </div>
         </div>
@@ -420,6 +477,8 @@
         let dbClient = null;
         let globalAdminData = []; 
         let currentSearchResults = []; 
+        let lastSubmittedRecord = null;
+        let activeSmartMode = 'school';
 
         function getDB() {
             if (dbClient) return dbClient;
@@ -447,7 +506,7 @@
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalText').innerText = text;
             
-            ['modalInputPass', 'modalInputText', 'modalInputSingleSchool', 'modalCancelBtn', 'edit-attendance-form', 'receipt-card', 'modalDownloadBtn'].forEach(id => {
+            ['modalInputPass', 'modalInputText', 'modalInputSingleSchool', 'modalInputBulkSchools', 'modalCancelBtn', 'edit-attendance-form', 'receipt-card', 'modalDownloadBtn', 'modalWhatsappBtn'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.style.display = 'none';
             });
@@ -481,6 +540,16 @@
                 okBtn.innerText = "حفظ المدرسة";
                 okBtn.onclick = confirmSingleAdd; 
                 setTimeout(() => singleInput.focus(), 100);
+            }
+            else if (type === 'bulk_add') {
+                icon.innerText = '📋'; icon.style.color = 'var(--primary)';
+                const bulkInput = document.getElementById('modalInputBulkSchools');
+                bulkInput.style.display = 'block'; 
+                bulkInput.value = '';
+                cancelBtn.style.display = 'block';
+                okBtn.innerText = "حفظ المجموعة";
+                okBtn.onclick = confirmBulkAdd; 
+                setTimeout(() => bulkInput.focus(), 100);
             }
             else if (type === 'edit_school') {
                 icon.innerText = '✏️'; icon.style.color = 'var(--primary)';
@@ -525,6 +594,7 @@
                 icon.innerText = '✅'; icon.style.color = 'var(--success)';
                 document.getElementById('receipt-card').style.display = 'block';
                 document.getElementById('modalDownloadBtn').style.display = 'block';
+                document.getElementById('modalWhatsappBtn').style.display = 'block';
                 okBtn.innerText = "إغلاق";
             }
             modal.classList.add('show');
@@ -536,7 +606,6 @@
             document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
             
-            // إعادة تعيين التاريخ لليوم الحالي عند دخول شاشة التسجيل
             if(sectionId === 'section-attendance') { 
                 loadSchools(); 
                 document.getElementById('att-school-search').value = '';
@@ -548,8 +617,11 @@
                 document.getElementById('att-year').value = today.getFullYear();
             }
             
-            if(sectionId === 'section-search') { loadSchools(); document.getElementById('query-school-search').value = ''; }
-            if(sectionId === 'section-manage-schools') loadManageSchools();
+            if(sectionId === 'section-search') { 
+                loadSchools(); 
+                document.querySelector('.search-tab').click();
+            }
+            if(sectionId === 'section-manage-schools') { loadManageSchools(); }
             if(sectionId === 'section-radar') loadRadarData(); 
         }
 
@@ -570,25 +642,35 @@
             const daySel = document.getElementById('att-day'); 
             const monthSel = document.getElementById('att-month'); 
             const yearSel = document.getElementById('att-year');
-            const searchMonthSel = document.getElementById('search-month');
-            const searchYearSel = document.getElementById('search-year');
+            
+            // تعبئة القوائم للبحث الذكي
+            const topMonth = document.getElementById('smart-top-month');
+            const percMonth = document.getElementById('smart-percent-month');
 
             for(let i=1; i<=31; i++) daySel.innerHTML += `<option value="${i}">${i}</option>`;
             for(let i=1; i<=12; i++) {
-                monthSel.innerHTML += `<option value="${i}">${monthNamesArabic[i-1]}</option>`;
-                searchMonthSel.innerHTML += `<option value="${i}">${monthNamesArabic[i-1]}</option>`;
+                const opt = `<option value="${i}">${monthNamesArabic[i-1]}</option>`;
+                monthSel.innerHTML += opt;
+                if(document.getElementById('search-month')) document.getElementById('search-month').innerHTML += opt;
+                if(topMonth) topMonth.innerHTML += opt;
+                if(percMonth) percMonth.innerHTML += opt;
             }
             
             daySel.value = currentDay; 
             monthSel.value = currentMonth; 
             yearSel.value = currentYear;
-            searchMonthSel.value = currentMonth;
-            searchYearSel.value = currentYear;
+            
+            if(document.getElementById('search-month')) document.getElementById('search-month').value = currentMonth;
+            if(topMonth) topMonth.value = currentMonth;
+            if(percMonth) percMonth.value = currentMonth;
 
             const todayString = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
-            document.getElementById('search-exact-date').value = todayString; 
-            document.getElementById('search-start-date').value = todayString; 
-            document.getElementById('search-end-date').value = todayString;
+            if(document.getElementById('search-exact-date')) document.getElementById('search-exact-date').value = todayString; 
+            if(document.getElementById('search-start-date')) document.getElementById('search-start-date').value = todayString; 
+            if(document.getElementById('search-end-date')) document.getElementById('search-end-date').value = todayString;
+            if(document.getElementById('smart-school-start')) document.getElementById('smart-school-start').value = todayString;
+            if(document.getElementById('smart-school-end')) document.getElementById('smart-school-end').value = todayString;
+            if(document.getElementById('smart-allday-date')) document.getElementById('smart-allday-date').value = todayString;
             
             document.querySelectorAll('.calc-input').forEach(input => { input.addEventListener('input', calculateAllGrades); });
         });
@@ -659,7 +741,7 @@
                 const { data, error } = await db.from('schools').select('*').order('name');
                 if (!error && data) {
                     globalSchoolsList = data; 
-                    renderSchoolDropdown(data, 'att-school'); renderSchoolDropdown(data, 'search-school-select');
+                    renderSchoolDropdown(data, 'att-school'); renderSchoolDropdown(data, 'smart-school-select');
                 }
             } catch (err) {}
         }
@@ -684,20 +766,15 @@
         function filterQuerySchool() {
             const rawSearch = document.getElementById('query-school-search').value.trim(); const searchTerm = normalizeArabic(rawSearch.toLowerCase());
             const filtered = globalSchoolsList.filter(s => { return normalizeArabic(s.name.toLowerCase()).includes(searchTerm); });
-            renderSchoolDropdown(filtered, 'search-school-select');
-            if(filtered.length > 0 && searchTerm !== "") document.getElementById('search-school-select').value = filtered[0].name;
+            renderSchoolDropdown(filtered, 'smart-school-select');
+            if(filtered.length > 0 && searchTerm !== "") document.getElementById('smart-school-select').value = filtered[0].name;
         }
 
-        function showSingleAddModal() { 
-            showModal("إضافة مدرسة جديدة", "أدخل اسم المدرسة المراد إضافتها للمنظومة:", "single_add"); 
-        }
-
+        // ================== دوال إضافة المدارس ==================
+        function showSingleAddModal() { showModal("إضافة مدرسة جديدة", "أدخل اسم المدرسة المراد إضافتها للمنظومة:", "single_add"); }
         async function confirmSingleAdd() {
             const schoolName = document.getElementById('modalInputSingleSchool').value.trim();
-            if (schoolName.length < 3 || !/[a-zA-Z\u0600-\u06FF]/.test(schoolName)) {
-                showModal("خطأ إدخال", "الرجاء كتابة اسم مدرسة صحيح.", "error");
-                return;
-            }
+            if (schoolName.length < 3 || !/[a-zA-Z\u0600-\u06FF]/.test(schoolName)) { showModal("خطأ إدخال", "الرجاء كتابة اسم مدرسة صحيح.", "error"); return; }
             showModal("جاري الحفظ...", "يرجى الانتظار...", "info");
             const db = getDB();
             try {
@@ -705,7 +782,25 @@
                 if(error) throw error;
                 showModal("تم الحفظ", `تمت إضافة مدرسة "${schoolName}" بنجاح.`, "success");
                 loadSchools(); 
+                if(document.getElementById('section-manage-schools').classList.contains('active')) loadManageSchools();
             } catch (err) { showModal("خطأ", "فشل الحفظ.", "error"); }
+        }
+
+        function showBulkAddModal() { showModal("إضافة مجموعة مدارس", "انسخ قائمة المدارس من الوورد أو الإكسيل، والزقها في المربع بالأسفل (مدرسة في كل سطر):", "bulk_add"); }
+        async function confirmBulkAdd() {
+            const rawText = document.getElementById('modalInputBulkSchools').value;
+            const schoolsArray = rawText.split('\n').map(s => s.trim()).filter(s => s.length >= 3 && /[a-zA-Z\u0600-\u06FF]/.test(s));
+            if (schoolsArray.length === 0) { showModal("خطأ إدخال", "الرجاء كتابة أو لصق أسماء مدارس صحيحة.", "error"); return; }
+            const recordsToInsert = schoolsArray.map(name => ({ name: name }));
+            showModal("جاري الحفظ...", `جاري حفظ ${schoolsArray.length} مدرسة، يرجى الانتظار...`, "info");
+            const db = getDB();
+            try {
+                const { error } = await db.from('schools').insert(recordsToInsert);
+                if(error) throw error;
+                showModal("تم الحفظ بنجاح", `تمت إضافة ${schoolsArray.length} مدرسة إلى المنظومة.`, "success");
+                loadSchools(); 
+                if(document.getElementById('section-manage-schools').classList.contains('active')) loadManageSchools();
+            } catch (err) { console.error(err); showModal("خطأ في الحفظ", "قد تكون بعض هذه المدارس مسجلة بالفعل، لم يتم الحفظ.", "error"); }
         }
 
         let currentSchoolId = null;
@@ -770,9 +865,7 @@
         }
 
         function downloadReceipt() {
-            if (typeof html2canvas === 'undefined') {
-                alert("الرجاء التأكد من اتصالك بالإنترنت لتحميل الصورة."); return;
-            }
+            if (typeof html2canvas === 'undefined') { alert("الرجاء التأكد من اتصالك بالإنترنت لتحميل الصورة."); return; }
             const card = document.getElementById('receipt-card');
             const schoolName = document.getElementById('rcpt-school').innerText;
             const dateStr = document.getElementById('rcpt-date').innerText.replace(/ /g, "_");
@@ -785,11 +878,37 @@
             });
         }
 
+        function shareOnWhatsapp() {
+            if (!lastSubmittedRecord) return;
+            const r = lastSubmittedRecord;
+            const monthName = monthNamesArabic[Number(r.attendance_month) - 1];
+            const dateStr = `يوم ${r.attendance_day} ${monthName} ${r.attendance_year}`;
+            
+            let message = `*منظومة الغياب المركزي | إدارة سوهاج* 📝\n\n`;
+            message += `🏫 *المدرسة:* ${r.school_name}\n`;
+            message += `📅 *التاريخ:* ${dateStr}\n`;
+            message += `------------------------\n`;
+            message += `*تفصيل الصفوف:*\n`;
+            message += `الـصـف الأول ⇦ مقيد: ${r.g1_total} | حضور: ${r.g1_attend} | غياب: ${r.g1_absent}\n`;
+            message += `الصف الثاني ⇦ مقيد: ${r.g2_total} | حضور: ${r.g2_attend} | غياب: ${r.g2_absent}\n`;
+            message += `الصف الثالث ⇦ مقيد: ${r.g3_total} | حضور: ${r.g3_attend} | غياب: ${r.g3_absent}\n`;
+            message += `------------------------\n`;
+            message += `📊 *الإحصاء الختامي:*\n`;
+            message += `إجمالي المقيد: *${r.final_total}*\n`;
+            message += `إجمالي الحضور: *${r.final_attend}*\n`;
+            message += `إجمالي الغياب: *${r.final_absent}*`;
+
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank');
+        }
+
         async function executeSubmit(recordToSubmit) {
             const db = getDB(); const btn = document.getElementById('btn-submit-att'); btn.innerText = "جاري الإرسال... ⏳"; btn.disabled = true;
             try {
                 const { error } = await db.from('daily_attendance').insert([recordToSubmit]);
                 if(error) throw error;
+                
+                lastSubmittedRecord = recordToSubmit;
                 
                 const saveChecked = document.getElementById('save-totals-checkbox').checked;
                 if(saveChecked) {
@@ -805,7 +924,11 @@
                 
                 showReceipt(recordToSubmit);
 
-            } catch(e) { showModal("خطأ", "فشل الإرسال. تأكد من اتصالك.", "error"); }
+            } catch(e) { 
+                console.error(e);
+                alert("سبب الرفض من قاعدة البيانات:\n" + (e.message || JSON.stringify(e)));
+                showModal("خطأ", "فشل الإرسال. تم عرض سبب الخطأ في رسالة منبثقة.", "error"); 
+            }
             btn.innerText = "🚀 حفظ وإرسال البيانات"; btn.disabled = false;
         }
 
@@ -879,7 +1002,6 @@
             } catch(e) { await executeSubmit(record); }
         }
 
-        let editAttendanceId = null;
         function openEditAttendanceModal(id) {
             const record = currentSearchResults.find(r => r.id == id);
             if(!record) return;
@@ -929,7 +1051,7 @@
                 
                 closeModal();
                 setTimeout(() => { showModal("نجاح", "تم تحديث البيانات بنجاح.", "success"); }, 300);
-                executeAdvancedSearch(); 
+                executeSmartSearch(); 
             } catch(e) {
                 btn.innerText = "حفظ التعديلات";
                 btn.disabled = false;
@@ -937,85 +1059,199 @@
             }
         }
 
-        let currentSearchMode = 'day';
-        function switchSearchTab(mode, btnElement) {
-            currentSearchMode = mode;
-            document.querySelectorAll('.search-tab').forEach(b => b.classList.remove('active')); btnElement.classList.add('active');
-            document.querySelectorAll('.search-type-content').forEach(c => c.classList.remove('active')); document.getElementById('search-inputs-' + mode).classList.add('active');
-        }
-        function parseHTMLDate(dateStr) {
-            if(!dateStr) return null; const [y, m, d] = dateStr.split('-'); return { day: parseInt(d), month: parseInt(m), year: parseInt(y), dateObj: new Date(y, m - 1, d) };
+        // ================== دوال البحث والتحليل الذكي ==================
+        function switchSmartMode(mode, btnElement) {
+            activeSmartMode = mode;
+            document.querySelectorAll('.search-tab').forEach(b => b.classList.remove('active')); 
+            btnElement.classList.add('active');
+            document.querySelectorAll('.smart-input-box').forEach(c => c.classList.remove('active')); 
+            document.getElementById('smart-input-' + mode).classList.add('active');
+            document.getElementById('search-results-container').innerHTML = ''; // تنظيف النتائج القديمة
         }
 
-        async function executeAdvancedSearch() {
+        async function executeSmartSearch() {
             const db = getDB(); 
-            let school = document.getElementById('search-school-select').value; 
-            const rawSearch = document.getElementById('query-school-search').value.trim();
-            if (!school && rawSearch !== "") {
-                const normSearch = normalizeArabic(rawSearch.toLowerCase());
-                const possibleMatch = globalSchoolsList.find(s => normalizeArabic(s.name.toLowerCase()).includes(normSearch));
-                if (possibleMatch) school = possibleMatch.name;
-            }
             const container = document.getElementById('search-results-container');
-            if(!school) return showModal("تنبيه", "الرجاء كتابة أو اختيار اسم المدرسة أولاً.", "error"); 
             if (!db) return;
             
-            container.innerHTML = "<h3 style='color:var(--primary); text-align:center;'>جاري البحث... ⏳</h3>";
+            container.innerHTML = "<h3 style='color:var(--primary); text-align:center;'>جاري التحليل والبحث... ⏳</h3>";
+            
             try {
-                const { data, error } = await db.from('daily_attendance').select('*').eq('school_name', school);
-                if(error) throw error;
-                let filteredData = []; let reportTitle = "";
-                if (currentSearchMode === 'day') {
-                    const exactDateVal = document.getElementById('search-exact-date').value; if(!exactDateVal) { container.innerHTML = ""; return showModal("تنبيه", "الرجاء تحديد تاريخ اليوم", "error"); }
-                    const exactDate = parseHTMLDate(exactDateVal);
-                    filteredData = data.filter(r => Number(r.attendance_day) === exactDate.day && Number(r.attendance_month) === exactDate.month && Number(r.attendance_year) === exactDate.year);
-                    reportTitle = `تقرير يوم: ${exactDate.day} ${monthNamesArabic[exactDate.month - 1]} ${exactDate.year}`;
-                } else if (currentSearchMode === 'range') {
-                    const startVal = document.getElementById('search-start-date').value; const endVal = document.getElementById('search-end-date').value;
-                    if(!startVal || !endVal) { container.innerHTML = ""; return showModal("تنبيه", "الرجاء تحديد بداية ونهاية الفترة", "error"); }
-                    const startDate = parseHTMLDate(startVal).dateObj; const endDate = parseHTMLDate(endVal).dateObj; endDate.setHours(23,59,59,999); 
-                    if(startDate > endDate) { container.innerHTML = ""; return showModal("تنبيه", "تاريخ البداية يجب أن يكون قبل النهاية", "error"); }
-                    filteredData = data.filter(r => { const rDate = new Date(Number(r.attendance_year), Number(r.attendance_month) - 1, Number(r.attendance_day)); return rDate >= startDate && rDate <= endDate; });
-                    reportTitle = `تقرير الفترة من (${startVal}) إلى (${endVal})`;
-                } else if (currentSearchMode === 'month') {
-                    const sMonth = Number(document.getElementById('search-month').value); const sYear = Number(document.getElementById('search-year').value);
-                    filteredData = data.filter(r => Number(r.attendance_month) === sMonth && Number(r.attendance_year) === sYear);
-                    reportTitle = `تقرير شهر ${monthNamesArabic[sMonth - 1]} لسنة ${sYear}`;
-                }
-
-                filteredData.sort((a, b) => {
-                    const dateA = new Date(Number(a.attendance_year), Number(a.attendance_month) - 1, Number(a.attendance_day));
-                    const dateB = new Date(Number(b.attendance_year), Number(b.attendance_month) - 1, Number(b.attendance_day));
-                    return dateA - dateB; 
-                });
-
-                currentSearchResults = filteredData; 
-
-                if(filteredData.length === 0) { container.innerHTML = `<div style="text-align:center; padding:2rem; background:var(--bg-body); border-radius:12px; border:1px solid var(--border-color);"><h3 style="color:var(--danger);">لم يتم العثور على سجلات!</h3></div>`; return; }
-
-                let html = `<div style="background:#e8f4ec; border:2px solid var(--primary); border-radius:12px; padding:15px; margin-bottom:20px; text-align:center;"><h3 style="margin:0 0 10px 0; color:var(--primary);">🏫 مدرسة: ${school}</h3><h4 style="margin:0; color:var(--text-main); font-size:1.1rem;">${reportTitle}</h4><p style="margin:10px 0 0 0; font-weight:bold; color:var(--text-muted);">تم العثور على: <span style="color:var(--danger); font-size:1.3rem;">${filteredData.length}</span> سجلات</p></div><div style="display:flex; flex-direction:column; gap:15px;">`;
-                filteredData.forEach(r => {
-                    const monthName = monthNamesArabic[Number(r.attendance_month) - 1];
-                    const dateStr = `${r.attendance_day} ${monthName} ${r.attendance_year}`;
+                if (activeSmartMode === 'school') {
+                    // 1. استعلام مدرسة محددة
+                    let school = document.getElementById('search-school-select').value; 
+                    const rawSearch = document.getElementById('query-school-search').value.trim();
+                    if (!school && rawSearch !== "") {
+                        const normSearch = normalizeArabic(rawSearch.toLowerCase());
+                        const possibleMatch = globalSchoolsList.find(s => normalizeArabic(s.name.toLowerCase()).includes(normSearch));
+                        if (possibleMatch) school = possibleMatch.name;
+                    }
+                    if(!school) { container.innerHTML = ""; return showModal("تنبيه", "الرجاء تحديد مدرسة.", "error"); }
                     
-                    const editBtn = `<button class="btn-solid no-print" style="background:#0dcaf0; color:#fff; padding:10px; margin-top: 15px; border-radius: 8px; width:100%; font-family: 'Cairo'; font-weight: bold; border:none; cursor:pointer;" onclick="openEditAttendanceModal('${r.id}')">✏️ تعديل الغياب</button>`;
+                    const startVal = document.getElementById('smart-school-start').value;
+                    const endVal = document.getElementById('smart-school-end').value;
+                    if(!startVal || !endVal) { container.innerHTML = ""; return showModal("تنبيه", "الرجاء تحديد فترة.", "error"); }
+                    
+                    const startDate = parseHTMLDate(startVal).dateObj; 
+                    const endDate = parseHTMLDate(endVal).dateObj; endDate.setHours(23,59,59,999); 
+                    
+                    const { data, error } = await db.from('daily_attendance').select('*').eq('school_name', school);
+                    if(error) throw error;
+                    
+                    let filteredData = data.filter(r => { const rDate = new Date(Number(r.attendance_year), Number(r.attendance_month) - 1, Number(r.attendance_day)); return rDate >= startDate && rDate <= endDate; });
+                    filteredData.sort((a, b) => new Date(a.attendance_year, a.attendance_month - 1, a.attendance_day) - new Date(b.attendance_year, b.attendance_month - 1, b.attendance_day));
+                    currentSearchResults = filteredData;
+                    
+                    if(filteredData.length === 0) { container.innerHTML = `<h3 style="color:var(--danger); text-align:center;">لا يوجد سجلات في هذه الفترة!</h3>`; return; }
+                    
+                    let html = `<div style="background:#e8f4ec; padding:15px; border-radius:12px; margin-bottom:20px; text-align:center; border: 2px solid var(--primary);">
+                                    <h3 style="margin:0; color:var(--primary);">🏫 ${school}</h3>
+                                    <p style="margin:5px 0 0 0; font-weight:bold;">تم العثور على: <span style="color:var(--danger)">${filteredData.length}</span> سجلات</p>
+                                </div>`;
+                    
+                    filteredData.forEach(r => {
+                        const dateStr = `${r.attendance_day} ${monthNamesArabic[Number(r.attendance_month) - 1]} ${r.attendance_year}`;
+                        html += `<div class="search-result-card">
+                                    <h4 style="color:var(--primary); margin:0 0 10px 0; border-bottom:1px dashed #ccc; padding-bottom:10px;">📅 يوم ${dateStr}</h4>
+                                    <div style="display:flex; justify-content:space-around; text-align:center; margin-bottom:10px;">
+                                        <div><span style="color:var(--text-muted); font-size:0.9rem; display:block;">المقيد</span><span style="font-weight:bold; font-size:1.2rem;">${r.final_total}</span></div>
+                                        <div><span style="color:var(--text-muted); font-size:0.9rem; display:block;">الحضور</span><span style="color:var(--success); font-weight:bold; font-size:1.2rem;">${r.final_attend}</span></div>
+                                        <div><span style="color:var(--text-muted); font-size:0.9rem; display:block;">الغياب</span><span style="color:var(--danger); font-weight:bold; font-size:1.2rem;">${r.final_absent}</span></div>
+                                    </div>
+                                    <button class="btn-solid no-print" style="background:#0dcaf0; padding:8px; font-size:1rem; margin-top:5px;" onclick="openEditAttendanceModal('${r.id}')">✏️ تعديل الغياب</button>
+                                </div>`;
+                    });
+                    container.innerHTML = html;
 
-                    html += `<div class="search-result-card">
-                                <h4 style="color:var(--primary); margin:0 0 15px 0; border-bottom:1px dashed var(--border-color); padding-bottom:10px;">📅 يوم ${dateStr}</h4>
-                                <div style="display:flex; justify-content:space-around; text-align:center; margin-bottom:15px;">
-                                    <div><span style="color:var(--text-muted); font-size:0.9rem; display:block;">المقيد</span><span style="color:var(--text-main); font-weight:bold; font-size:1.2rem;">${r.final_total}</span></div>
-                                    <div><span style="color:var(--text-muted); font-size:0.9rem; display:block;">الحضور</span><span style="color:var(--success); font-weight:bold; font-size:1.2rem;">${r.final_attend}</span></div>
-                                    <div><span style="color:var(--text-muted); font-size:0.9rem; display:block;">الغياب الكلي</span><span style="color:var(--danger); font-weight:bold; font-size:1.2rem;">${r.final_absent}</span></div>
-                                </div>
-                                <div style="text-align:center; font-size:0.95rem; color:var(--text-main); background:var(--bg-body); padding:10px; border-radius:8px; font-weight:bold; margin-bottom: 10px;">
-                                    تفصيل غياب الصفوف ⇦ ( الأول: <span style="color:var(--danger)">${r.g1_absent||0}</span> | الثاني: <span style="color:var(--danger)">${r.g2_absent||0}</span> | الثالث: <span style="color:var(--danger)">${r.g3_absent||0}</span> )
-                                </div>
-                                <div style="text-align:center;">${editBtn}</div>
-                            </div>`;
-                });
-                html += `</div>`; container.innerHTML = html;
+                } else if (activeSmartMode === 'allday') {
+                    // 2. حصر يومي للكل
+                    const dateVal = document.getElementById('smart-allday-date').value;
+                    if(!dateVal) { container.innerHTML = ""; return showModal("تنبيه", "الرجاء تحديد اليوم.", "error"); }
+                    const exactDate = parseHTMLDate(dateVal);
+                    
+                    const { data, error } = await db.from('daily_attendance')
+                        .select('*')
+                        .eq('attendance_day', exactDate.day).eq('attendance_month', exactDate.month).eq('attendance_year', exactDate.year)
+                        .order('final_absent', { ascending: false }); // ترتيب من الأعلى غياب للأقل
+                        
+                    if(error) throw error;
+                    currentSearchResults = data;
+                    
+                    if(data.length === 0) { container.innerHTML = `<h3 style="color:var(--danger); text-align:center;">لم يتم تسجيل غياب لأي مدرسة في هذا اليوم!</h3>`; return; }
+                    
+                    let totalAbs = 0; data.forEach(r => totalAbs += r.final_absent);
+                    let html = `<div style="background:#fff3cd; padding:15px; border-radius:12px; margin-bottom:20px; text-align:center; border: 2px solid #ffc107;">
+                                    <h3 style="margin:0; color:#856404;">📅 حصر يوم: ${exactDate.day} ${monthNamesArabic[exactDate.month - 1]} ${exactDate.year}</h3>
+                                    <p style="margin:5px 0 0 0; font-weight:bold;">إجمالي المدارس المسجلة: <span style="color:var(--primary)">${data.length}</span> | إجمالي الطلاب الغائبين: <span style="color:var(--danger)">${totalAbs}</span></p>
+                                </div>`;
+                    
+                    data.forEach((r, index) => {
+                        html += `<div class="search-result-card" style="padding-left: 10px;">
+                                    <div class="rank-badge" style="background: ${index < 3 ? 'var(--danger)' : '#6c757d'}">#${index + 1}</div>
+                                    <h4 style="color:var(--primary); margin:15px 0 10px 0; text-align:center;">🏫 ${r.school_name}</h4>
+                                    <div style="display:flex; justify-content:space-around; text-align:center;">
+                                        <div><span style="color:var(--text-muted); font-size:0.8rem; display:block;">المقيد</span><strong style="font-size:1.1rem;">${r.final_total}</strong></div>
+                                        <div><span style="color:var(--text-muted); font-size:0.8rem; display:block;">الحضور</span><strong style="color:var(--success); font-size:1.1rem;">${r.final_attend}</strong></div>
+                                        <div><span style="color:var(--text-muted); font-size:0.8rem; display:block;">الغياب</span><strong style="color:var(--danger); font-size:1.1rem;">${r.final_absent}</strong></div>
+                                    </div>
+                                </div>`;
+                    });
+                    container.innerHTML = html;
+
+                } else if (activeSmartMode === 'topabsent') {
+                    // 3. الأكثر غياباً (أرقام) في شهر
+                    const sMonth = Number(document.getElementById('smart-top-month').value); 
+                    const sYear = Number(document.getElementById('smart-top-year').value);
+                    
+                    const { data, error } = await db.from('daily_attendance')
+                        .select('school_name, final_total, final_absent')
+                        .eq('attendance_month', sMonth).eq('attendance_year', sYear);
+                    if(error) throw error;
+                    if(data.length === 0) { container.innerHTML = `<h3 style="color:var(--danger); text-align:center;">لا توجد بيانات لهذا الشهر!</h3>`; return; }
+
+                    // تجميع البيانات
+                    let schoolsAgg = {};
+                    data.forEach(r => {
+                        if(!schoolsAgg[r.school_name]) schoolsAgg[r.school_name] = { name: r.school_name, total_absent: 0, days_recorded: 0 };
+                        schoolsAgg[r.school_name].total_absent += r.final_absent;
+                        schoolsAgg[r.school_name].days_recorded += 1;
+                    });
+
+                    // تحويل لمصفوفة وترتيبها
+                    let sortedSchools = Object.values(schoolsAgg).sort((a, b) => b.total_absent - a.total_absent).slice(0, 10); // أعلى 10
+
+                    let html = `<div style="background:#f8d7da; padding:15px; border-radius:12px; margin-bottom:20px; text-align:center; border: 2px solid var(--danger);">
+                                    <h3 style="margin:0; color:#721c24;">📉 أكثر 10 مدارس غياباً</h3>
+                                    <p style="margin:5px 0 0 0; font-weight:bold; color:#721c24;">عن شهر ${monthNamesArabic[sMonth - 1]} ${sYear}</p>
+                                </div>`;
+                    
+                    sortedSchools.forEach((s, index) => {
+                        html += `<div class="search-result-card" style="display:flex; justify-content:space-between; align-items:center; padding: 15px 20px;">
+                                    <div style="display:flex; align-items:center; gap: 15px;">
+                                        <div style="background:var(--danger); color:white; width:35px; height:35px; border-radius:50%; display:flex; justify-content:center; align-items:center; font-weight:bold; font-size:1.2rem;">${index + 1}</div>
+                                        <div>
+                                            <h4 style="margin:0; color:var(--text-main); font-size:1.1rem;">${s.name}</h4>
+                                            <span style="font-size:0.8rem; color:var(--text-muted);">سجلت ${s.days_recorded} أيام</span>
+                                        </div>
+                                    </div>
+                                    <div style="text-align:center;">
+                                        <span style="display:block; font-size:0.8rem; color:var(--text-muted);">إجمالي الغياب</span>
+                                        <strong style="color:var(--danger); font-size:1.4rem;">${s.total_absent}</strong>
+                                    </div>
+                                </div>`;
+                    });
+                    container.innerHTML = html;
+
+                } else if (activeSmartMode === 'highpercent') {
+                    // 4. نسب غياب خطرة
+                    const threshold = Number(document.getElementById('smart-percent-val').value) || 0;
+                    const sMonth = Number(document.getElementById('smart-percent-month').value); 
+                    const sYear = Number(document.getElementById('smart-percent-year').value);
+                    
+                    const { data, error } = await db.from('daily_attendance')
+                        .select('school_name, final_total, final_absent')
+                        .eq('attendance_month', sMonth).eq('attendance_year', sYear);
+                    if(error) throw error;
+                    if(data.length === 0) { container.innerHTML = `<h3 style="color:var(--danger); text-align:center;">لا توجد بيانات لهذا الشهر!</h3>`; return; }
+
+                    // تجميع البيانات
+                    let schoolsAgg = {};
+                    data.forEach(r => {
+                        if(!schoolsAgg[r.school_name]) schoolsAgg[r.school_name] = { name: r.school_name, total_absent: 0, sum_of_totals: 0 };
+                        schoolsAgg[r.school_name].total_absent += r.final_absent;
+                        schoolsAgg[r.school_name].sum_of_totals += r.final_total;
+                    });
+
+                    // حساب النسبة والتصفية
+                    let riskySchools = Object.values(schoolsAgg).map(s => {
+                        s.percentage = s.sum_of_totals > 0 ? ((s.total_absent / s.sum_of_totals) * 100) : 0;
+                        return s;
+                    }).filter(s => s.percentage >= threshold).sort((a, b) => b.percentage - a.percentage);
+
+                    if(riskySchools.length === 0) { container.innerHTML = `<div style="text-align:center; padding:2rem; background:#d1e7dd; border-radius:12px; border:1px solid var(--success);"><h3 style="color:var(--success); margin:0;">🎉 ممتاز! لا توجد أي مدرسة تخطت نسبة ${threshold}%</h3></div>`; return; }
+
+                    let html = `<div style="background:#fff3cd; padding:15px; border-radius:12px; margin-bottom:20px; text-align:center; border: 2px solid #ffc107;">
+                                    <h3 style="margin:0; color:#856404;">⚠️ مدارس تجاوزت غياب ${threshold}%</h3>
+                                    <p style="margin:5px 0 0 0; font-weight:bold; color:#856404;">عن شهر ${monthNamesArabic[sMonth - 1]} ${sYear} (عددها: ${riskySchools.length})</p>
+                                </div>`;
+                    
+                    riskySchools.forEach(s => {
+                        html += `<div class="search-result-card" style="display:flex; justify-content:space-between; align-items:center; padding: 15px 20px;">
+                                    <div>
+                                        <h4 style="margin:0; color:var(--text-main); font-size:1.1rem;">🏫 ${s.name}</h4>
+                                    </div>
+                                    <div style="text-align:center;">
+                                        <span style="display:block; font-size:0.8rem; color:var(--text-muted);">نسبة الغياب</span>
+                                        <strong style="color:var(--danger); font-size:1.4rem; background:#fff5f5; padding:5px 10px; border-radius:8px;">${s.percentage.toFixed(1)}%</strong>
+                                    </div>
+                                </div>`;
+                    });
+                    container.innerHTML = html;
+                }
+                
             } catch(e) { container.innerHTML = "<p style='color:var(--danger); text-align:center;'>حدث خطأ أثناء معالجة البيانات.</p>"; }
         }
+        // ===============================================================
 
         async function loadRadarData() {
             const db = getDB(); const alertsGrid = document.getElementById('public-alerts-grid'); if (!db) return;
